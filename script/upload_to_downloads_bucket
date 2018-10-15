@@ -1,0 +1,23 @@
+#!/bin/bash
+set -exu
+
+BUCKET=brave-browser-downloads
+PKG_FILE="Brave Browser.pkg"
+EXE32_FILE="setup.exe"
+EXE64_FILE="setup.exe"
+
+
+if [ -f "${PKG_FILE}" ]; then
+  aws s3 cp "${PKG_FILE}" "s3://${BUCKET}/latest/osx/${PKG_FILE}"
+  aws s3api put-object-acl --acl public-read --bucket ${BUCKET} --key "latest/osx/Brave-Browser.pkg"
+fi
+
+if [ -f "${EXE32_FILE}" ]; then
+  aws s3 cp "${EXE32_FILE}" "s3://${BUCKET}/latest/winx64/${EXE32_FILE}"
+  aws s3api put-object-acl --acl public-read --bucket ${BUCKET} --key "latest/winx64/BraveBrowserSetup.exe"
+fi
+
+if [ -f "${EXE64_FILE}" ]; then
+  aws s3 cp "${EXE64_FILE}" "s3://${BUCKET}/latest/winia32/${EXE64_FILE}"
+  aws s3api put-object-acl --acl public-read --bucket ${BUCKET} --key "latest/winia32/BraveBrowserSetup32.exe"
+fi
