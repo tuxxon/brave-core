@@ -22,7 +22,6 @@ import { getLocale } from '../../../../common/locale'
 import * as rewardsActions from '../actions/rewards_actions'
 import * as utils from '../utils'
 import WalletOff from 'brave-ui/features/rewards/walletOff'
-import ModalAddFunds from 'brave-ui/features/rewards/modalAddFunds'
 
 const clipboardCopy = require('clipboard-copy')
 
@@ -163,9 +162,7 @@ class PageWallet extends React.Component<Props, State> {
   }
 
   onModalAddFundsToggle = () => {
-    this.setState({
-      modalAddFunds: !this.state.modalAddFunds
-    })
+    this.actions.addFundsToWallet()
   }
 
   isAddFundsUrl = () => {
@@ -267,10 +264,9 @@ class PageWallet extends React.Component<Props, State> {
   }
 
   render () {
-    const { connectedWallet, recoveryKey, enabledMain, addresses, walletInfo, ui } = this.props.rewardsData
+    const { connectedWallet, recoveryKey, enabledMain, walletInfo, ui } = this.props.rewardsData
     const { balance } = walletInfo
     const { walletRecoverySuccess, emptyWallet, modalBackup } = ui
-    const addressArray = utils.getAddresses(addresses)
 
     return (
       <>
@@ -312,14 +308,6 @@ class PageWallet extends React.Component<Props, State> {
               onSaveFile={this.onModalBackupOnSaveFile}
               onRestore={this.onModalBackupOnRestore}
               error={walletRecoverySuccess === false ? getLocale('walletRecoveryFail') : ''}
-            />
-            : null
-        }
-        {
-          this.state.modalAddFunds
-            ? <ModalAddFunds
-              onClose={this.closeModalAddFunds}
-              addresses={addressArray}
             />
             : null
         }
