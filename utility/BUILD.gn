@@ -18,6 +18,7 @@ source_set("utility") {
   defines = []
   deps = [
     "tor",
+    "//brave/components/brave_rewards/utility:ledger",
     "//chrome/common",
     "//chrome/utility",
     "//content/public/common",

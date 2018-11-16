@@ -1,0 +1,19 @@
+import("//services/service_manager/public/service_manifest.gni")
+
+source_set("ledger") {
+  sources = [
+    "ledger_service.cc",
+    "ledger_service.h",
+    "ledger_impl.cc",
+    "ledger_impl.h",
+  ]
+
+  deps = [
+    "//brave/vendor/bat-native-ledger",
+  ]
+}
+
+service_manifest("ledger_manifest") {
+  name = "ledger"
+  source = "ledger_manifest.json"
+}

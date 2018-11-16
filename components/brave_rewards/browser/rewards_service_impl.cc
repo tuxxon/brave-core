@@ -40,6 +40,7 @@
 #include "components/favicon/core/favicon_service.h"
 #include "components/favicon_base/favicon_types.h"
 #include "content/public/browser/browser_task_traits.h"
+#include "content/public/common/service_manager_connection.h"
 #include "content_site.h"
 #include "extensions/buildflags/buildflags.h"
 #include "net/base/escape.h"
@@ -47,6 +48,7 @@
 #include "net/base/url_util.h"
 #include "net/url_request/url_fetcher.h"
 #include "publisher_banner.h"
+#include "services/service_manager/public/cpp/connector.h"
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/gfx/image/image.h"
 #include "url/gurl.h"
@@ -296,6 +298,11 @@ RewardsServiceImpl::RewardsServiceImpl(Profile* profile)
       ledger::reconcile_time = defined_reconcile_int;
     }
   }
+
+  content::ServiceManagerConnection::GetForProcess()->GetConnector()
+    ->BindInterface(rewards::mojom::kLedgerServiceName,
+                    &ledger_oop_);
+  // TODO: set connection error handler
 }
 
 RewardsServiceImpl::~RewardsServiceImpl() {
@@ -307,7 +314,7 @@ void RewardsServiceImpl::Init() {
   AddObserver(extension_rewards_service_observer_.get());
   private_observers_.AddObserver(private_observer_.get());
 #endif
-  ledger_->Initialize();
+  ledger_oop_->Initialize();
 }
 
 void RewardsServiceImpl::CreateWallet() {

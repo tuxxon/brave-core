@@ -249,6 +249,9 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       <message name="IDS_UTILITY_PROCESS_TOR_LAUNCHER_NAME" desc="The utility process which launch Tor">
         Tor Launcher
       </message>
+      <message name="IDS_UTILITY_PROCESS_LEDGER_NAME" desc="The utility process running ledger">
+        Ledger
+      </message>
       <!-- Brave Shields Defaults -->
       <message name="IDS_SETTINGS_BRAVE_SHIELDS_DEFAULTS_TITLE" desc="The title for Brave shields defaults in settings">
         Brave shields defaults

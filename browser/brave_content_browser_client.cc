@@ -15,6 +15,7 @@
 #include "brave/common/webui_url_constants.h"
 #include "brave/common/tor/tor_launcher.mojom.h"
 #include "brave/common/tor/switches.h"
+#include "brave/components/brave_rewards/common/ledger.mojom.h"
 #include "brave/components/brave_shields/browser/brave_shields_util.h"
 #include "brave/components/brave_shields/browser/brave_shields_web_contents_observer.h"
 #include "brave/components/brave_shields/common/brave_shield_constants.h"
@@ -186,6 +187,8 @@ void BraveContentBrowserClient::RegisterOutOfProcessServices(
   ChromeContentBrowserClient::RegisterOutOfProcessServices(services);
   (*services)[tor::mojom::kTorLauncherServiceName] = base::BindRepeating(
     l10n_util::GetStringUTF16, IDS_UTILITY_PROCESS_TOR_LAUNCHER_NAME);
+  (*services)[rewards::mojom::kLedgerServiceName] = base::BindRepeating(
+    l10n_util::GetStringUTF16, IDS_UTILITY_PROCESS_LEDGER_NAME);
 }
 
 std::unique_ptr<content::NavigationUIData>

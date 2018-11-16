@@ -17,6 +17,7 @@
 #include "base/memory/weak_ptr.h"
 #include "base/timer/timer.h"
 #include "bat/ledger/ledger_client.h"
+#include "brave/components/brave_rewards/common/ledger.mojom.h"
 #include "brave/components/brave_rewards/browser/rewards_service.h"
 #include "chrome/browser/bitmap_fetcher/bitmap_fetcher_service.h"
 #include "content/public/browser/browser_thread.h"
@@ -270,6 +271,7 @@ class RewardsServiceImpl : public RewardsService,
 
   Profile* profile_;  // NOT OWNED
   std::unique_ptr<ledger::Ledger> ledger_;
+  rewards::mojom::LedgerPtr ledger_oop_;
 #if BUILDFLAG(ENABLE_EXTENSIONS)
   std::unique_ptr<ExtensionRewardsServiceObserver>
       extension_rewards_service_observer_;

@@ -5,6 +5,8 @@
 #include "brave/utility/brave_content_utility_client.h"
 
 #include "brave/common/tor/tor_launcher.mojom.h"
+#include "brave/components/brave_rewards/common/ledger.mojom.h"
+#include "brave/components/brave_rewards/utility/ledger_service.h"
 #include "brave/utility/tor/tor_launcher_service.h"
 
 BraveContentUtilityClient::BraveContentUtilityClient()
@@ -20,4 +22,9 @@ void BraveContentUtilityClient::RegisterServices(
   tor_launcher_info.factory = base::BindRepeating(
     &tor::TorLauncherService::CreateService);
   services->emplace(tor::mojom::kTorLauncherServiceName, tor_launcher_info);
+
+  service_manager::EmbeddedServiceInfo ledger_info;
+  ledger_info.factory = base::BindRepeating(
+    &rewards::LedgerService::CreateService);
+  services->emplace(rewards::mojom::kLedgerServiceName, ledger_info);
 }
