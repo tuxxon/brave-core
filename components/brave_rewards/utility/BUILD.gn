@@ -6,9 +6,12 @@ source_set("ledger") {
     "ledger_service.h",
     "ledger_impl.cc",
     "ledger_impl.h",
+    "mojo_ledger_client.cc",
+    "mojo_ledger_client.h",
   ]
 
   deps = [
+    "//brave/components/brave_rewards/common:rewards_mojom_bindings",
     "//brave/vendor/bat-native-ledger",
   ]
 }

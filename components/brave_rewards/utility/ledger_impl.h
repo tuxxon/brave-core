@@ -10,12 +10,12 @@
 #include "bat/ledger/ledger.h"
 #include "bat/ledger/ledger_client.h"
 #include "brave/components/brave_rewards/common/ledger.mojom.h"
+#include "brave/components/brave_rewards/utility/mojo_ledger_client.h"
 #include "services/service_manager/public/cpp/service_context_ref.h"
 
 namespace rewards {
 
-class LedgerImpl : public rewards::mojom::Ledger,
-                   public ledger::LedgerClient {
+class LedgerImpl : public rewards::mojom::Ledger {
  public:
   explicit LedgerImpl(
       std::unique_ptr<service_manager::ServiceContextRef> service_ref);
@@ -26,6 +26,7 @@ class LedgerImpl : public rewards::mojom::Ledger,
 
  private:
   const std::unique_ptr<service_manager::ServiceContextRef> service_ref_;
+  std::unique_ptr<MojoLedgerClient> mojo_ledger_client_;
   std::unique_ptr<ledger::Ledger> ledger_;
 
   DISALLOW_COPY_AND_ASSIGN(LedgerImpl);

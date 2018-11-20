@@ -60,7 +60,8 @@ class PublisherInfoDatabase;
 class RewardsNotificationService;
 
 class RewardsServiceImpl : public RewardsService,
-                            public ledger::LedgerClient,
+                            public ledger::LedgerClient, // TODO: remove it
+                            public rewards::mojom::LedgerClient,
                             public net::URLFetcherDelegate,
                             public base::SupportsWeakPtr<RewardsServiceImpl> {
  public:

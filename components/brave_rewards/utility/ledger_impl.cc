@@ -11,7 +11,8 @@ namespace rewards {
 LedgerImpl::LedgerImpl(
     std::unique_ptr<service_manager::ServiceContextRef> service_ref)
   : service_ref_(std::move(service_ref)),
-    ledger_(ledger::Ledger::CreateInstance(this)) {
+    mojo_ledger_client_(MojoLedgerClient::Create()),
+    ledger_(ledger::Ledger::CreateInstance(mojo_ledger_client_.get())) {
 
   // Environment
   #if defined(OFFICIAL_BUILD)
