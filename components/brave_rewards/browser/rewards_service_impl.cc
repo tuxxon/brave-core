@@ -249,6 +249,7 @@ const base::FilePath::StringType kPublishers_list("publishers_list");
 RewardsServiceImpl::RewardsServiceImpl(Profile* profile)
     : profile_(profile),
       ledger_(ledger::Ledger::CreateInstance(this)),
+      binding_(this),
 #if BUILDFLAG(ENABLE_EXTENSIONS)
       extension_rewards_service_observer_(
           std::make_unique<ExtensionRewardsServiceObserver>(profile_)),
@@ -303,10 +304,15 @@ RewardsServiceImpl::RewardsServiceImpl(Profile* profile)
     ->BindInterface(rewards::mojom::kLedgerServiceName,
                     &ledger_oop_);
   // TODO: set connection error handler
+
 }
 
 RewardsServiceImpl::~RewardsServiceImpl() {
   file_task_runner_->DeleteSoon(FROM_HERE, publisher_info_backend_.release());
+}
+
+void RewardsServiceImpl::OnLedgerClientSet() {
+  LOG(ERROR) << __FUNCTION__;
 }
 
 void RewardsServiceImpl::Init() {
@@ -314,6 +320,9 @@ void RewardsServiceImpl::Init() {
   AddObserver(extension_rewards_service_observer_.get());
   private_observers_.AddObserver(private_observer_.get());
 #endif
+  rewards::mojom::LedgerClientPtr ledger_client_ptr;
+  binding_.Bind(mojo::MakeRequest(&ledger_client_ptr));
+  ledger_oop_->SetLedgerClient(std::move(ledger_client_ptr));
   ledger_oop_->Initialize();
 }
 

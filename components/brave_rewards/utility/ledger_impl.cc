@@ -20,10 +20,14 @@ LedgerImpl::LedgerImpl(
   #else
     ledger::is_production = false;
   #endif
-
 }
 
 LedgerImpl::~LedgerImpl() {
+}
+
+void LedgerImpl::SetLedgerClient(rewards::mojom::LedgerClientPtr client) {
+  LOG(ERROR) << __FUNCTION__;
+  mojo_ledger_client_->SetLedgerClient(std::move(client));
 }
 
 void LedgerImpl::Initialize() {

@@ -17,6 +17,13 @@ MojoLedgerClient* MojoLedgerClient::Create() {
   return new MojoLedgerClient();
 }
 
+void MojoLedgerClient::SetLedgerClient(
+    rewards::mojom::LedgerClientPtr client) {
+  LOG(ERROR) << __FUNCTION__;
+  ledger_client_ = std::move(client);
+  ledger_client_->OnLedgerClientSet();
+}
+
 std::string MojoLedgerClient::GenerateGUID() const {
   return "";
 }

@@ -10,9 +10,13 @@ const string kLedgerServiceName = "ledger";
 interface LedgerClient {
   OnExcludedSitesChanged();
   // TODO: add methods of ledger::LedgerClient
+
+  // temporary added for initial debugging
+  OnLedgerClientSet();
 };
 
 // browser -> utility
 interface Ledger {
   Initialize();
+  SetLedgerClient(LedgerClient client);
 };

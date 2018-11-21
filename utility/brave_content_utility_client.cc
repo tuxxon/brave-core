@@ -17,7 +17,7 @@ BraveContentUtilityClient::~BraveContentUtilityClient() = default;
 void BraveContentUtilityClient::RegisterServices(
     ChromeContentUtilityClient::StaticServiceMap* services) {
   ChromeContentUtilityClient::RegisterServices(services);
-
+  LOG(ERROR) << __FUNCTION__;
   service_manager::EmbeddedServiceInfo tor_launcher_info;
   tor_launcher_info.factory = base::BindRepeating(
     &tor::TorLauncherService::CreateService);

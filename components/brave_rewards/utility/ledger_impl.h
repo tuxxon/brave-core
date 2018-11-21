@@ -23,6 +23,7 @@ class LedgerImpl : public rewards::mojom::Ledger {
 
   // rewards::mojom::Ledger
   void Initialize() override;
+  void SetLedgerClient(rewards::mojom::LedgerClientPtr client) override;
 
  private:
   const std::unique_ptr<service_manager::ServiceContextRef> service_ref_;

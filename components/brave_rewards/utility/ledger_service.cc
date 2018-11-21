@@ -14,6 +14,7 @@ namespace {
 void OnLedgerRequest(
     service_manager::ServiceContextRefFactory* ref_factory,
     rewards::mojom::LedgerRequest request) {
+  LOG(ERROR) << __FUNCTION__;
   mojo::MakeStrongBinding(
       std::make_unique<rewards::LedgerImpl>(ref_factory->CreateRef()),
       std::move(request));
@@ -23,12 +24,15 @@ void OnLedgerRequest(
 
 namespace rewards {
 
-LedgerService::LedgerService() {}
+LedgerService::LedgerService() {
+  LOG(ERROR) << __FUNCTION__;
+}
 
 LedgerService::~LedgerService() {}
 
 std::unique_ptr<service_manager::Service>
 LedgerService::CreateService() {
+  LOG(ERROR) << __FUNCTION__;
   return std::make_unique<LedgerService>();
 }
 

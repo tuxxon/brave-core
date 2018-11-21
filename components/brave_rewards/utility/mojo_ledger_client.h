@@ -100,6 +100,7 @@ class MojoLedgerClient : public ledger::LedgerClient {
   void SetContributionAutoInclude(
     std::string publisher_key, bool excluded, uint64_t windowId) override {}
 
+  void SetLedgerClient(rewards::mojom::LedgerClientPtr client);
  private:
   void LoadNicewareList(ledger::GetNicewareListCallback callback) override {}
   void OnRemoveRecurring(const std::string& publisher_key, ledger::RecurringRemoveCallback callback) override {}

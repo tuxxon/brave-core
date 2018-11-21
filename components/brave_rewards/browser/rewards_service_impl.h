@@ -23,6 +23,7 @@
 #include "content/public/browser/browser_thread.h"
 #include "extensions/buildflags/buildflags.h"
 #include "extensions/common/one_shot_event.h"
+#include "mojo/public/cpp/bindings/binding.h"
 #include "net/url_request/url_fetcher_delegate.h"
 #include "brave/components/brave_rewards/browser/balance_report.h"
 #include "brave/components/brave_rewards/browser/contribution_info.h"
@@ -270,9 +271,13 @@ class RewardsServiceImpl : public RewardsService,
   // URLFetcherDelegate impl
   void OnURLFetchComplete(const net::URLFetcher* source) override;
 
+  // rewards::mojom::LedgerClient impl
+  void OnLedgerClientSet() override;
+
   Profile* profile_;  // NOT OWNED
   std::unique_ptr<ledger::Ledger> ledger_;
   rewards::mojom::LedgerPtr ledger_oop_;
+  mojo::Binding<rewards::mojom::LedgerClient> binding_;
 #if BUILDFLAG(ENABLE_EXTENSIONS)
   std::unique_ptr<ExtensionRewardsServiceObserver>
       extension_rewards_service_observer_;
