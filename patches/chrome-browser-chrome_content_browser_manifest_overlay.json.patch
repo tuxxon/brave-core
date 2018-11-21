@@ -1,8 +1,16 @@
 diff --git a/chrome/browser/chrome_content_browser_manifest_overlay.json b/chrome/browser/chrome_content_browser_manifest_overlay.json
-index 16d737166437e7af7c15515afb42f843823a9c26..66eb9d0960f12fcf239fb2f5420e7378b08a9d5d 100644
+index 16d737166437e7af7c15515afb42f843823a9c26..cdaf1c2ac2474442b1f7b4a062cb04fa7e6a03e0 100644
 --- a/chrome/browser/chrome_content_browser_manifest_overlay.json
 +++ b/chrome/browser/chrome_content_browser_manifest_overlay.json
-@@ -65,6 +65,7 @@
+@@ -49,6 +49,7 @@
+         "file_util": [ "analyze_archive", "zip_file" ],
+         "identity": [ "identity_manager" ],
+         "ime": [ "input_engine" ],
++        "ledger": [ "ledger" ],
+         // Only used in classic ash case.
+         "local_state": [ "pref_client" ],
+         "media_gallery_util": [ "parse_media" ],
+@@ -65,6 +66,7 @@
          "removable_storage_writer": [ "removable_storage_writer" ],
          "secure_channel": [ "secure_channel" ],
          "shortcut_viewer_app": [ "shortcut_viewer" ],
