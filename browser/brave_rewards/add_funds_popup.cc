@@ -29,6 +29,7 @@
 #include "ui/display/display.h"
 #include "ui/display/screen.h"
 #include "ui/views/widget/widget.h"
+#include "url/url_constants.h"
 
 using content::WebContents;
 
@@ -38,15 +39,14 @@ constexpr int kPopupPreferredHeight = 800;
 constexpr int kPopupPreferredWidth = 1100;
 
 // URL to open in the popup.
-const char kAddFundsUrl[] = "https://uphold-widget.brave.com/index.php";
+const char kAddFundsPopupUrl[] = "https://uphold-widget.brave.com/index.php";
 
-// Content permission URLs and patterns.
-const char kAddFundsOrigin[] = "https://uphold-widget.brave.com/";
-const char kFirstParty[] = "https://firstParty";
-
-const char kUpholdPattern[] = "https://[*.]uphold.com/*";
-const char kNetverifyPattern[] = "https://[*.]netverify.com/*";
-const char kTypekitPattern[] = "https://use.typekit.net/*";
+// Content permission URLs.
+const GURL kAddFundsUrl("https://uphold-widget.brave.com");
+const GURL kUpholdUrl("https://uphold.com");
+const GURL kNetverifyUrl("https://netverify.com");
+const GURL kTypekitUrl("https://use.typekit.net");
+const GURL kFirstPartyUrl("https://firstParty");
 
 const std::map<std::string, std::string> kCurrencyToNetworkMap {
   {"BTC", "bitcoin"},
@@ -79,16 +79,20 @@ class PopupContentSettingsBase {
 
   // Generic settings routines.
   ContentSetting SetContentSetting(HostContentSettingsMap* map,
-                                   const char* host,
-                                   const char* secondary,
+                                   const GURL& host,
+                                   const GURL& secondary,
                                    ContentSettingsType type,
                                    ContentSetting setting,
-                                   const std::string& resource_identifier);
+                                   const std::string& resource_identifier,
+                                   bool include_host_subdomains = false);
 
   void ResetContentSetting(HostContentSettingsMap* map,
-                           const char* host,
+                           const GURL& host,
                            ContentSettingsType type,
                            ContentSetting setting);
+
+  ContentSettingsPattern GURLToPattern(const GURL& gurl,
+                                       bool wildcard_subdomains = false);
 
   // Profile for which content setting have been altered.
   Profile* profile_;
@@ -99,17 +103,20 @@ class PopupContentSettingsBase {
   ContentSetting cookies_setting_fp_;
   ContentSetting fingerprinting_setting_;
   ContentSetting fingerprinting_setting_fp_;
+
+  ContentSetting js_brave_;
+  ContentSetting js_uphold_;
+  ContentSetting js_netverify_;
+  ContentSetting js_typekit_;
+
   ContentSetting camera_setting_;
   ContentSetting autoplay_setting_;
-
-  // Set to true if we had to enable javascript.
-  bool allowed_scripts;
 
   DISALLOW_COPY_AND_ASSIGN(PopupContentSettingsBase);
 };
 
 PopupContentSettingsBase::PopupContentSettingsBase(Profile* profile)
-    : profile_(profile), allowed_scripts(false) {
+    : profile_(profile) {
   Allow();
 }
 
@@ -134,62 +141,53 @@ void PopupContentSettingsBase::AllowShieldsFingerprinting(
     HostContentSettingsMap* map) {
   // Narrower scope first.
   fingerprinting_setting_fp_ = SetContentSetting(
-      map, kAddFundsOrigin, kFirstParty, CONTENT_SETTINGS_TYPE_PLUGINS,
+      map, kAddFundsUrl, kFirstPartyUrl, CONTENT_SETTINGS_TYPE_PLUGINS,
       CONTENT_SETTING_ALLOW, brave_shields::kFingerprinting);
   // Wider scope.
   fingerprinting_setting_ = SetContentSetting(
-      map, kAddFundsOrigin, nullptr, CONTENT_SETTINGS_TYPE_PLUGINS,
+      map, kAddFundsUrl, GURL(), CONTENT_SETTINGS_TYPE_PLUGINS,
       CONTENT_SETTING_ALLOW, brave_shields::kFingerprinting);
 }
 
 void PopupContentSettingsBase::AllowShieldsCookies(
     HostContentSettingsMap* map) {
   referrers_setting_ = SetContentSetting(
-      map, kAddFundsOrigin, nullptr, CONTENT_SETTINGS_TYPE_PLUGINS,
+      map, kAddFundsUrl, GURL(), CONTENT_SETTINGS_TYPE_PLUGINS,
       CONTENT_SETTING_ALLOW, brave_shields::kReferrers);
   cookies_setting_fp_ = SetContentSetting(
-      map, kAddFundsOrigin, kFirstParty, CONTENT_SETTINGS_TYPE_PLUGINS,
+      map, kAddFundsUrl, kFirstPartyUrl, CONTENT_SETTINGS_TYPE_PLUGINS,
       CONTENT_SETTING_ALLOW, brave_shields::kCookies);
   cookies_setting_ = SetContentSetting(
-      map, kAddFundsOrigin, nullptr, CONTENT_SETTINGS_TYPE_PLUGINS,
+      map, kAddFundsUrl, GURL(), CONTENT_SETTINGS_TYPE_PLUGINS,
       CONTENT_SETTING_ALLOW, brave_shields::kCookies);
 }
 
 void PopupContentSettingsBase::AllowShieldsScripts(
     HostContentSettingsMap* map) {
-  // Check if shields scripts setting is turned to disallow scripts.
-  if (map->GetContentSetting(GURL(), GURL(), CONTENT_SETTINGS_TYPE_JAVASCRIPT,
-                             std::string()) != CONTENT_SETTING_ALLOW) {
-    // Allow scripts from our host, uphold.com, and netverify.com.
-    const ContentSettingsPattern pattern =
-        ContentSettingsPattern::FromString(std::string(kAddFundsOrigin) + "/*");
-    map->SetContentSettingCustomScope(
-        pattern, ContentSettingsPattern::Wildcard(),
-        CONTENT_SETTINGS_TYPE_JAVASCRIPT, std::string(), CONTENT_SETTING_ALLOW);
-    map->SetContentSettingCustomScope(
-        ContentSettingsPattern::FromString(kUpholdPattern),
-        ContentSettingsPattern::Wildcard(), CONTENT_SETTINGS_TYPE_JAVASCRIPT,
-        std::string(), CONTENT_SETTING_ALLOW);
-    map->SetContentSettingCustomScope(
-        ContentSettingsPattern::FromString(kNetverifyPattern),
-        ContentSettingsPattern::Wildcard(), CONTENT_SETTINGS_TYPE_JAVASCRIPT,
-        std::string(), CONTENT_SETTING_ALLOW);
-    map->SetContentSettingCustomScope(
-        ContentSettingsPattern::FromString(kTypekitPattern),
-        ContentSettingsPattern::Wildcard(), CONTENT_SETTINGS_TYPE_JAVASCRIPT,
-        std::string(), CONTENT_SETTING_ALLOW);
-    allowed_scripts = true;
-  }
+  // Allow scripts from our host, uphold.com, netverify.com, and
+  // use.typekit.net.
+  js_brave_ = SetContentSetting(map, kAddFundsUrl, GURL(),
+    CONTENT_SETTINGS_TYPE_JAVASCRIPT,
+    CONTENT_SETTING_ALLOW, std::string());
+  js_uphold_ = SetContentSetting(map, kUpholdUrl, GURL(),
+    CONTENT_SETTINGS_TYPE_JAVASCRIPT,
+    CONTENT_SETTING_ALLOW, std::string(), true);
+  js_netverify_ = SetContentSetting(map, kNetverifyUrl, GURL(),
+    CONTENT_SETTINGS_TYPE_JAVASCRIPT,
+    CONTENT_SETTING_ALLOW, std::string(), true);
+  js_typekit_ = SetContentSetting(map, kTypekitUrl, GURL(),
+    CONTENT_SETTINGS_TYPE_JAVASCRIPT,
+    CONTENT_SETTING_ALLOW, std::string());
 }
 
 void PopupContentSettingsBase::AllowCameraAccess(HostContentSettingsMap* map) {
-  camera_setting_ = SetContentSetting(map, kAddFundsOrigin, nullptr,
+  camera_setting_ = SetContentSetting(map, kAddFundsUrl, GURL(),
                                       CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA,
                                       CONTENT_SETTING_ALLOW, std::string());
 }
 
 void PopupContentSettingsBase::AllowAutoplay(HostContentSettingsMap* map) {
-  autoplay_setting_ = SetContentSetting(map, kAddFundsOrigin, nullptr,
+  autoplay_setting_ = SetContentSetting(map, kAddFundsUrl, GURL(),
                                         CONTENT_SETTINGS_TYPE_AUTOPLAY,
                                         CONTENT_SETTING_ALLOW, std::string());
 }
@@ -210,97 +208,77 @@ void PopupContentSettingsBase::Reset() {
 void PopupContentSettingsBase::ResetShieldsFingerprinting(
     HostContentSettingsMap* map) {
   // Wide scope first.
-  SetContentSetting(map, kAddFundsOrigin, nullptr,
+  SetContentSetting(map, kAddFundsUrl, GURL(),
                     CONTENT_SETTINGS_TYPE_PLUGINS, fingerprinting_setting_,
                     brave_shields::kFingerprinting);
   // Then narrow scope.
-  SetContentSetting(map, kAddFundsOrigin, kFirstParty,
+  SetContentSetting(map, kAddFundsUrl, kFirstPartyUrl,
                     CONTENT_SETTINGS_TYPE_PLUGINS, fingerprinting_setting_fp_,
                     brave_shields::kFingerprinting);
 }
 
 void PopupContentSettingsBase::ResetShieldsCookies(
     HostContentSettingsMap* map) {
-  SetContentSetting(map, kAddFundsOrigin, nullptr,
+  SetContentSetting(map, kAddFundsUrl, GURL(),
                     CONTENT_SETTINGS_TYPE_PLUGINS, referrers_setting_,
                     brave_shields::kReferrers);
-  SetContentSetting(map, kAddFundsOrigin, nullptr,
+  SetContentSetting(map, kAddFundsUrl, GURL(),
                     CONTENT_SETTINGS_TYPE_PLUGINS, cookies_setting_,
                     brave_shields::kCookies);
-  SetContentSetting(map, kAddFundsOrigin, kFirstParty,
+  SetContentSetting(map, kAddFundsUrl, kFirstPartyUrl,
                     CONTENT_SETTINGS_TYPE_PLUGINS, cookies_setting_fp_,
                     brave_shields::kCookies);
 }
 
 void PopupContentSettingsBase::ResetShieldsScripts(
     HostContentSettingsMap* map) {
-  if (allowed_scripts) {
-    // Delete entries for our host, uphold.com, and netverify.com.
-    const ContentSettingsPattern pattern =
-        ContentSettingsPattern::FromString(std::string(kAddFundsOrigin) + "/*");
-    map->SetContentSettingCustomScope(pattern,
-                                      ContentSettingsPattern::Wildcard(),
-                                      CONTENT_SETTINGS_TYPE_JAVASCRIPT,
-                                      std::string(), CONTENT_SETTING_DEFAULT);
-    map->SetContentSettingCustomScope(
-        ContentSettingsPattern::FromString(kUpholdPattern),
-        ContentSettingsPattern::Wildcard(), CONTENT_SETTINGS_TYPE_JAVASCRIPT,
-        std::string(), CONTENT_SETTING_DEFAULT);
-    map->SetContentSettingCustomScope(
-        ContentSettingsPattern::FromString(kNetverifyPattern),
-        ContentSettingsPattern::Wildcard(), CONTENT_SETTINGS_TYPE_JAVASCRIPT,
-        std::string(), CONTENT_SETTING_DEFAULT);
-    map->SetContentSettingCustomScope(
-        ContentSettingsPattern::FromString(kTypekitPattern),
-        ContentSettingsPattern::Wildcard(), CONTENT_SETTINGS_TYPE_JAVASCRIPT,
-        std::string(), CONTENT_SETTING_DEFAULT);
-    allowed_scripts = false;
-  }
+  SetContentSetting(map, kAddFundsUrl, GURL(),
+                    CONTENT_SETTINGS_TYPE_JAVASCRIPT, js_brave_, std::string());
+  SetContentSetting(map, kUpholdUrl, GURL(), CONTENT_SETTINGS_TYPE_JAVASCRIPT,
+                    js_uphold_, std::string(), true);
+  SetContentSetting(map, kNetverifyUrl, GURL(), CONTENT_SETTINGS_TYPE_JAVASCRIPT,
+                    js_netverify_, std::string(), true);
+  SetContentSetting(map, kTypekitUrl, GURL(), CONTENT_SETTINGS_TYPE_JAVASCRIPT,
+                    js_typekit_, std::string());
 }
 
 void PopupContentSettingsBase::ResetCameraAccess(HostContentSettingsMap* map) {
-  ResetContentSetting(map, kAddFundsOrigin,
+  ResetContentSetting(map, kAddFundsUrl,
                       CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA,
                       camera_setting_);
 }
 
 void PopupContentSettingsBase::ResetAutoplay(HostContentSettingsMap* map) {
-  ResetContentSetting(map, kAddFundsOrigin, CONTENT_SETTINGS_TYPE_AUTOPLAY,
+  ResetContentSetting(map, kAddFundsUrl, CONTENT_SETTINGS_TYPE_AUTOPLAY,
                       autoplay_setting_);
 }
 
 ContentSetting PopupContentSettingsBase::SetContentSetting(
     HostContentSettingsMap* map,
-    const char* host,
-    const char* secondary,
+    const GURL& host,
+    const GURL& secondary,
     ContentSettingsType type,
     ContentSetting setting,
-    const std::string& resource_identifier) {
+    const std::string& resource_identifier,
+    bool include_host_subdomains) {
   DCHECK(map);
-  DCHECK(host);
-
-  const GURL gurl(host);
-  GURL gurl_secondary;
-  if (secondary) {
-    gurl_secondary = GURL(secondary);
-  }
 
   // Get the current setting.
   ContentSetting current_setting =
-      map->GetContentSetting(gurl, gurl_secondary, type, resource_identifier);
+      map->GetContentSetting(host, secondary, type, resource_identifier);
 
   // Check if the setting is already want we want it to be.
   if (current_setting != setting) {
-    // For PLUGINS type, construct patterns and use custom scope.
-    if (type == CONTENT_SETTINGS_TYPE_PLUGINS) {
+    // For PLUGINS and JAVASCRIPT types, construct patterns and use custom
+    // scope.
+    if (type == CONTENT_SETTINGS_TYPE_PLUGINS ||
+        type == CONTENT_SETTINGS_TYPE_JAVASCRIPT) {
       const ContentSettingsPattern pattern =
-          ContentSettingsPattern::FromString(std::string(host) + "/*");
+          GURLToPattern(host, include_host_subdomains);
       ContentSettingsPattern pattern_secondary =
           ContentSettingsPattern::Wildcard();
-      if (secondary)
-        pattern_secondary =
-            ContentSettingsPattern::FromString(std::string(secondary) + "/*");
-
+      if (!secondary.is_empty())
+        pattern_secondary =  GURLToPattern(secondary);
       map->SetContentSettingCustomScope(pattern, pattern_secondary, type,
                                         resource_identifier, setting);
     } else {
@@ -309,7 +287,7 @@ ContentSetting PopupContentSettingsBase::SetContentSetting(
           map->GetDefaultContentSetting(type, nullptr);
       if (current_setting == default_setting)
         current_setting = CONTENT_SETTING_DEFAULT;
-      map->SetContentSettingDefaultScope(gurl, gurl_secondary, type,
+      map->SetContentSettingDefaultScope(host, secondary, type,
                                          resource_identifier, setting);
     }
   }
@@ -318,19 +296,40 @@ ContentSetting PopupContentSettingsBase::SetContentSetting(
 }
 
 void PopupContentSettingsBase::ResetContentSetting(HostContentSettingsMap* map,
-                                                   const char* host,
+                                                   const GURL& host,
                                                    ContentSettingsType type,
                                                    ContentSetting setting) {
   DCHECK(map);
-  DCHECK(host);
   DCHECK(type != CONTENT_SETTINGS_TYPE_PLUGINS);
 
-  const GURL gurl(host);
   if (setting == CONTENT_SETTING_DEFAULT ||
-      setting != map->GetContentSetting(gurl, GURL(), type, std::string())) {
-    map->SetContentSettingDefaultScope(gurl, GURL(), type, std::string(),
+      setting != map->GetContentSetting(host, GURL(), type, std::string())) {
+    map->SetContentSettingDefaultScope(host, GURL(), type, std::string(),
                                        setting);
   }
+}
+
+ContentSettingsPattern PopupContentSettingsBase::GURLToPattern(
+    const GURL& gurl,
+    bool wildcard_subdomains) {
+  ContentSettingsPattern pattern;
+  DCHECK(!gurl.is_empty());
+  if (gurl.is_empty())
+    return pattern;
+
+  std::unique_ptr<ContentSettingsPattern::BuilderInterface> builder =
+      ContentSettingsPattern::CreateBuilder();
+  DCHECK(gurl.scheme() == url::kHttpsScheme);
+  builder->WithScheme(gurl.scheme());
+  builder->WithHost(gurl.host());
+  if (wildcard_subdomains)
+    builder->WithDomainWildcard();
+  builder->WithPort("443");
+  builder->WithPathWildcard();
+
+  pattern = builder->Build();
+  DCHECK(pattern.IsValid());
+  return pattern;
 }
 
 }  // namespace
@@ -377,7 +376,7 @@ void AddFundsPopup::OpenPopup(content::WebContents* initiator,
   if (addresses.empty())
     return;
 
-  const GURL gurl(std::string(kAddFundsUrl) + "?" +
+  const GURL gurl(std::string(kAddFundsPopupUrl) + "?" +
                   ToQueryString(GetAddressesAsJSON(addresses)));
 
   content::OpenURLParams params(gurl, content::Referrer(),
