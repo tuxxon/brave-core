@@ -6,6 +6,14 @@
 
 namespace bat_ledger {
 
+namespace {
+
+ledger::Result ToLedgerResult(int32_t result) {
+  return (ledger::Result)result;
+}
+
+} // anonymous namespace
+
 BatLedgerClientMojoProxy::BatLedgerClientMojoProxy(
     mojom::BatLedgerClientAssociatedPtrInfo client_info) {
   bat_ledger_client_.Bind(std::move(client_info));
@@ -38,6 +46,20 @@ void BatLedgerClientMojoProxy::OnExcludedSitesChanged() {
 
 void BatLedgerClientMojoProxy::Test() {
   bat_ledger_client_->Test();
+}
+
+void BatLedgerClientMojoProxy::OnLoadLedgerState(ledger::LedgerCallbackHandler* handler,
+    int32_t result, const std::string& data) {
+  handler->OnLedgerStateLoaded(ToLedgerResult(result), data);
+}
+
+void BatLedgerClientMojoProxy::LoadLedgerState(
+    ledger::LedgerCallbackHandler* handler) {
+  bat_ledger_client_->LoadLedgerState(
+      base::BindOnce(&BatLedgerClientMojoProxy::OnLoadLedgerState, AsWeakPtr(),
+        base::Unretained(handler)));
+}
+
 }
 
 } // namespace bat_ledger

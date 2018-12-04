@@ -6,6 +6,18 @@
 
 namespace bat_ledger {
 
+namespace {
+
+int32_t ToMojomResult(ledger::Result result) {
+  return (int32_t)result;
+}
+
+ledger::Result ToLedgerResult(int32_t result) {
+  return (ledger::Result)result;
+}
+
+} // anonymous namespace
+
 LedgerClientMojoProxy::LedgerClientMojoProxy(
     ledger::LedgerClient* ledger_client)
   : ledger_client_(ledger_client) {
@@ -17,6 +29,18 @@ LedgerClientMojoProxy::~LedgerClientMojoProxy() {
 void LedgerClientMojoProxy::Test() {
   LOG(ERROR) << __PRETTY_FUNCTION__;
   ledger_client_->Test();
+}
+
+void LedgerClientMojoProxy::LoadLedgerState(LoadLedgerStateCallback callback) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
+  load_ledger_state_callback_ = std::move(callback);
+  ledger_client_->LoadLedgerState(this);
+}
+
+void LedgerClientMojoProxy::OnLedgerStateLoaded(ledger::Result result,
+                                                const std::string& data) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
+  std::move(load_ledger_state_callback_).Run(ToMojomResult(result), data);
 }
 
 } // namespace bat_ledger

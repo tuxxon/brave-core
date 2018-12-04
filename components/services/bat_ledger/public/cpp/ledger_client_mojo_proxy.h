@@ -12,17 +12,24 @@
 
 namespace bat_ledger {
 
-class LedgerClientMojoProxy : public mojom::BatLedgerClient {
+class LedgerClientMojoProxy : public mojom::BatLedgerClient,
+                              public ledger::LedgerCallbackHandler {
  public:
-   LedgerClientMojoProxy(ledger::LedgerClient* ledger_client);
-   ~LedgerClientMojoProxy() override;
+  LedgerClientMojoProxy(ledger::LedgerClient* ledger_client);
+  ~LedgerClientMojoProxy() override;
 
-   // bat_ledger::mojom::BatLedgerClient
-   void Test() override;
+  // bat_ledger::mojom::BatLedgerClient
+  void LoadLedgerState(LoadLedgerStateCallback callback) override;
+
+  // ledger::LedgerCallbackHandler
+  void OnLedgerStateLoaded(ledger::Result result,
+      const std::string& data) override;
+
  private:
-   ledger::LedgerClient* ledger_client_;
+  ledger::LedgerClient* ledger_client_;
+  LoadLedgerStateCallback load_ledger_state_callback_;
 
-   DISALLOW_COPY_AND_ASSIGN(LedgerClientMojoProxy);
+  DISALLOW_COPY_AND_ASSIGN(LedgerClientMojoProxy);
 };
 
 } // namespace bat_ledger

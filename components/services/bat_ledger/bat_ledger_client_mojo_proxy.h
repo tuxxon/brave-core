@@ -7,6 +7,7 @@
 
 #include <map>
 
+#include "base/memory/weak_ptr.h"
 #include "bat/ledger/ledger_client.h"
 #include "brave/components/services/bat_ledger/public/interfaces/bat_ledger.mojom.h"
 #include "chrome/browser/bitmap_fetcher/bitmap_fetcher_service.h"
@@ -15,7 +16,8 @@ class SkBitmap;
 
 namespace bat_ledger {
 
-class BatLedgerClientMojoProxy : public ledger::LedgerClient {
+class BatLedgerClientMojoProxy : public ledger::LedgerClient,
+                      public base::SupportsWeakPtr<BatLedgerClientMojoProxy> {
  public:
   BatLedgerClientMojoProxy(
       mojom::BatLedgerClientAssociatedPtrInfo client_info);
@@ -36,8 +38,8 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient {
                            const std::string& probi) override {}
   void OnGrantFinish(ledger::Result result,
                      const ledger::Grant& grant) override {}
-  void LoadLedgerState(ledger::LedgerCallbackHandler* handler) override {}
   void LoadPublisherState(ledger::LedgerCallbackHandler* handler) override {}
+  void LoadLedgerState(ledger::LedgerCallbackHandler* handler) override;
   void SaveLedgerState(const std::string& ledger_state,
                        ledger::LedgerCallbackHandler* handler) override {}
   void SavePublisherState(const std::string& publisher_state,
@@ -106,6 +108,9 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient {
   void OnRemoveRecurring(const std::string& publisher_key, ledger::RecurringRemoveCallback callback) override {}
 
   mojom::BatLedgerClientAssociatedPtr bat_ledger_client_;
+
+  void OnLoadLedgerState(ledger::LedgerCallbackHandler* handler,
+      int32_t result, const std::string& data);
 
   DISALLOW_COPY_AND_ASSIGN(BatLedgerClientMojoProxy);
 };
