@@ -4,6 +4,8 @@
 
 #include "brave/components/services/bat_ledger/bat_ledger_client_mojo_proxy.h"
 
+#include "mojo/public/cpp/bindings/map.h"
+
 namespace bat_ledger {
 
 namespace {
@@ -24,16 +26,6 @@ BatLedgerClientMojoProxy::~BatLedgerClientMojoProxy() {
 
 std::string BatLedgerClientMojoProxy::GenerateGUID() const {
   return "";
-}
-
-std::unique_ptr<ledger::LedgerURLLoader> BatLedgerClientMojoProxy::LoadURL(
-    const std::string& url,
-    const std::vector<std::string>& headers,
-    const std::string& content,
-    const std::string& contentType,
-    const ledger::URL_METHOD& method,
-    ledger::LedgerCallbackHandler* handler) {
-  return nullptr;
 }
 
 std::string BatLedgerClientMojoProxy::URIEncode(const std::string& value) {
@@ -125,6 +117,28 @@ void BatLedgerClientMojoProxy::SavePublishersList(
   bat_ledger_client_->SavePublishersList(publishers_list,
       base::BindOnce(&BatLedgerClientMojoProxy::OnSavePublishersList,
         AsWeakPtr(), base::Unretained(handler)));
+}
+
+void BatLedgerClientMojoProxy::OnLoadURL(
+    ledger::LedgerCallbackHandler* handler,
+    uint64_t request_id, const std::string& url,
+    int32_t response_code, const std::string& response,
+    const base::flat_map<std::string, std::string>& headers) {
+  handler->OnURLRequestResponse(request_id, url, response_code, response,
+      mojo::FlatMapToMap(headers));
+}
+
+std::unique_ptr<ledger::LedgerURLLoader> BatLedgerClientMojoProxy::LoadURL(
+    const std::string& url,
+    const std::vector<std::string>& headers,
+    const std::string& content,
+    const std::string& contentType,
+    const ledger::URL_METHOD& method,
+    ledger::LedgerCallbackHandler* handler) {
+  bat_ledger_client_->LoadURL(url, headers, content, contentType, method,
+      base::BindOnce(&BatLedgerClientMojoProxy::OnLoadURL,
+        AsWeakPtr(), base::Unretained(handler)));
+  return nullptr; // TODO
 }
 
 } // namespace bat_ledger

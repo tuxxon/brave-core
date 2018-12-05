@@ -121,6 +121,10 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient,
       int32_t result);
   void OnSavePublishersList(ledger::LedgerCallbackHandler* handler,
       int32_t result);
+  void OnLoadURL(ledger::LedgerCallbackHandler* handler,
+      uint64_t request_id, const std::string& url,
+      int32_t response_code, const std::string& response,
+      const base::flat_map<std::string, std::string>& headers);
 
   DISALLOW_COPY_AND_ASSIGN(BatLedgerClientMojoProxy);
 };

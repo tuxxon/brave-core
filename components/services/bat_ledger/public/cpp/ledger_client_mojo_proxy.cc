@@ -4,6 +4,8 @@
 
 #include "brave/components/services/bat_ledger/public/cpp/ledger_client_mojo_proxy.h"
 
+#include "mojo/public/cpp/bindings/map.h"
+
 namespace bat_ledger {
 
 namespace {
@@ -14,6 +16,10 @@ int32_t ToMojomResult(ledger::Result result) {
 
 ledger::Result ToLedgerResult(int32_t result) {
   return (ledger::Result)result;
+}
+
+ledger::URL_METHOD ToLedgerURLMethod(int32_t method) {
+  return (ledger::URL_METHOD)method;
 }
 
 } // anonymous namespace
@@ -103,6 +109,27 @@ void LedgerClientMojoProxy::SavePublishersList(
 void LedgerClientMojoProxy::OnPublishersListSaved(ledger::Result result) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
   std::move(save_publishers_list_callback_).Run(ToMojomResult(result));
+}
+
+void LedgerClientMojoProxy::LoadURL(const std::string& url,
+    const std::vector<std::string>& headers,
+    const std::string& content,
+    const std::string& contentType,
+    int32_t method,
+    LoadURLCallback callback) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
+  load_url_callback_ = std::move(callback);
+  ledger_client_->LoadURL(url, headers, content, contentType,
+      ToLedgerURLMethod(method), this);
+}
+
+void LedgerClientMojoProxy::OnURLRequestResponse(uint64_t request_id,
+      const std::string& url,
+      int response_code,
+      const std::string& response,
+      const std::map<std::string, std::string>& headers) {
+  std::move(load_url_callback_).Run(request_id, url, response_code, response,
+      mojo::MapToFlatMap(headers));
 }
 
 } // namespace bat_ledger

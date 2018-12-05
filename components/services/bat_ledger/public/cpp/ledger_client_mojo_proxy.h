@@ -28,6 +28,12 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
       SavePublisherStateCallback callback) override;
   void SavePublishersList(const std::string& publishers_list,
       SavePublishersListCallback callback) override;
+  void LoadURL(const std::string& url,
+      const std::vector<std::string>& headers,
+      const std::string& content,
+      const std::string& contentType,
+      int32_t method,
+      LoadURLCallback callback) override;
 
   // ledger::LedgerCallbackHandler
   void OnLedgerStateLoaded(ledger::Result result,
@@ -39,6 +45,11 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
   void OnLedgerStateSaved(ledger::Result result) override;
   void OnPublisherStateSaved(ledger::Result result) override;
   void OnPublishersListSaved(ledger::Result result) override;
+  void OnURLRequestResponse(uint64_t request_id,
+      const std::string& url,
+      int response_code,
+      const std::string& response,
+      const std::map<std::string, std::string>& headers) override;
 
  private:
   ledger::LedgerClient* ledger_client_;
@@ -48,6 +59,7 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
   SaveLedgerStateCallback save_ledger_state_callback_;
   SavePublisherStateCallback save_publisher_state_callback_;
   SavePublishersListCallback save_publishers_list_callback_;
+  LoadURLCallback load_url_callback_;
 
   DISALLOW_COPY_AND_ASSIGN(LedgerClientMojoProxy);
 };
