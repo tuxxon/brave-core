@@ -19,9 +19,7 @@ BatLedgerImpl::BatLedgerImpl(
 BatLedgerImpl::~BatLedgerImpl() {
 }
 
-void BatLedgerImpl::Test() {
   LOG(ERROR) << __PRETTY_FUNCTION__;
-  ledger_->Test();
 }
 
 } // namespace bat_ledger

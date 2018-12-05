@@ -36,10 +36,6 @@ void BatLedgerClientMojoProxy::OnExcludedSitesChanged() {
 //  bat_ledger_client_->OnExcludedSitesChanged();
 }
 
-void BatLedgerClientMojoProxy::Test() {
-  bat_ledger_client_->Test();
-}
-
 void BatLedgerClientMojoProxy::OnLoadLedgerState(ledger::LedgerCallbackHandler* handler,
     int32_t result, const std::string& data) {
   handler->OnLedgerStateLoaded(ToLedgerResult(result), data);

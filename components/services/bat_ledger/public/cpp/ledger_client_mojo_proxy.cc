@@ -32,11 +32,6 @@ LedgerClientMojoProxy::LedgerClientMojoProxy(
 LedgerClientMojoProxy::~LedgerClientMojoProxy() {
 }
 
-void LedgerClientMojoProxy::Test() {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
-  ledger_client_->Test();
-}
-
 void LedgerClientMojoProxy::LoadLedgerState(LoadLedgerStateCallback callback) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
   load_ledger_state_callback_ = std::move(callback);

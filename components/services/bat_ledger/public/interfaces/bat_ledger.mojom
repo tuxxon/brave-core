@@ -12,11 +12,9 @@ interface BatLedgerService {
 };
 
 interface BatLedger {
-  Test();
 };
 
 interface BatLedgerClient {
-  Test();
   LoadLedgerState() => (int32 result, string data);
   LoadPublisherState() => (int32 result, string data);
   LoadPublisherList() => (int32 result, string data);

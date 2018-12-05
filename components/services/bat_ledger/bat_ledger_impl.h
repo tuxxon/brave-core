@@ -21,7 +21,6 @@ class BatLedgerImpl : public mojom::BatLedger {
     ~BatLedgerImpl() override;
 
     // bat_ledger::mojom::BatLedger
-    void Test() override;
   private:
     std::unique_ptr<BatLedgerClientMojoProxy> bat_ledger_client_mojo_proxy_;
     std::unique_ptr<ledger::Ledger> ledger_;

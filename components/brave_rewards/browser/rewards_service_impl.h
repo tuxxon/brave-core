@@ -126,7 +126,6 @@ class RewardsServiceImpl : public RewardsService,
   static void HandleFlags(const std::string& options);
   void OnWalletProperties(ledger::Result result,
                           std::unique_ptr<ledger::WalletInfo> info) override;
-  void Test() override;
 
  private:
   friend void RunIOTaskCallback(

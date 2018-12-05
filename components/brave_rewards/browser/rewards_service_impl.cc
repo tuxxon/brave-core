@@ -319,7 +319,6 @@ void RewardsServiceImpl::Init() {
 
   bat_ledger_service_->Create(std::move(client_ptr_info),
       MakeRequest(&bat_ledger_));
-  bat_ledger_->Test();
 }
 
 void RewardsServiceImpl::CreateWallet() {
@@ -1674,10 +1673,6 @@ void RewardsServiceImpl::HandleFlags(const std::string& options) {
       }
     }
   }
-}
-
-void RewardsServiceImpl::Test() {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
 }
 
 }  // namespace brave_rewards
