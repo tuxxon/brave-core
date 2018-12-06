@@ -44,6 +44,16 @@ void LedgerClientMojoProxy::OnLedgerStateLoaded(ledger::Result result,
   std::move(load_ledger_state_callback_).Run(ToMojomResult(result), data);
 }
 
+void LedgerClientMojoProxy::GenerateGUID(GenerateGUIDCallback callback) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
+  std::move(callback).Run(ledger_client_->GenerateGUID());
+}
+
+void LedgerClientMojoProxy::OnWalletInitialized(int32_t result) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
+  ledger_client_->OnWalletInitialized(ToLedgerResult(result));
+}
+
 void LedgerClientMojoProxy::LoadPublisherState(
     LoadPublisherStateCallback callback) {
   LOG(ERROR) << __PRETTY_FUNCTION__;

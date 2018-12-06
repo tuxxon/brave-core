@@ -12,10 +12,108 @@ interface BatLedgerService {
 };
 
 interface BatLedger {
+  Initialize();
+  CreateWallet();
+  FetchWalletProperties();
+
+  [Sync]
+  GetPublisherMinVisitTime() => (uint64 min_visit_time);
+  [Sync]
+  GetReconcileStamp() => (uint64 reconcile_stamp);
+
+  // TODO: GetPublisherInfoList
+
+  // TODO: need VisitData json serialize/deserialize
+  // OnLoad(string visit_data, uint64 current_time);
+  OnUnload(uint32 tab_id, uint64 current_time);
+  OnShow(uint32 tab_id, uint64 current_time);
+  OnHide(uint32 tab_id, uint64 current_time);
+  OnForeground(uint32 tab_id, uint64 current_time);
+  OnBackground(uint32 tab_id, uint64 current_time);
+  OnMediaStart(uint32 tab_id, uint64 current_time);
+  OnMediaStop(uint32 tab_id, uint64 current_time);
+
+  // TODO: need VisitData json serialize/deserialize
+  // OnPostData(string url, string first_party_url, string referrer,
+  //              string post_data, string visit_data);
+  // OnXHRLoad(uint32 tab_id, string url, map<string, string> parts,
+  //             string first_party_url, string referrer, string visit_data);
+
+
+  SetPublisherExclude(string publisher_key, int32 exclude);
+  RestorePublishers();
+
+  // TODO: Revise rewards_service_impl to be async
+  [Sync]
+  SetBalanceReportItem(
+      int32 month, int32 year, int32 type, string probi) => ();
+
+  // TODO: Revise rewards_service_impl to be async
+  [Sync]
+  OnReconcileCompleteSuccess(string viewing_id, int32 category, string probi,
+      int32 month, int32 year, uint32 data) => ();
+
+  FetchGrant(string lang, string payment_id);
+  GetGrantCaptcha();
+  [Sync]
+  GetWalletPassphrase() => (string wallet_passphrase);
+  [Sync]
+  GetNumExcludedSites() => (uint32 num_excluded_sites);
+  RecoverWallet(string passPhrase);
+  SolveGrantCaptcha(string solution);
+
+  [Sync]
+  GetBATAddress() => (string address);
+  [Sync]
+  GetBTCAddress() => (string address);
+  [Sync]
+  GetETHAddress() => (string address);
+  [Sync]
+  GetLTCAddress() => (string address);
+
+  // TODO: is sync needed for all these functions?
+  SetRewardsMainEnabled(bool enabled);
+  SetPublisherMinVisitTime(uint64 duration_in_seconds);
+  SetPublisherMinVisits(uint32 visits);
+  SetPublisherAllowNonVerified(bool allow);
+  SetPublisherAllowVideos(bool allow);
+  SetUserChangedContribution();
+  SetContributionAmount(double amount);
+  SetAutoContribute(bool enabled);
+
+  // TODO: Revise rewards_service_impl to be async
+  [Sync]
+  OnTimer(uint32 timer_id) => ();
+
+  // TODO: json serialize/deserialize of BalanceReport
+  // [Sync] // TODO: Revise rewards_service_impl to be async
+  // GetAllBalanceReports() => (map<string, string> reports);
+  // [Sync] // TODO: Revise rewards_service_impl to be async
+  // GetBalanceReport(int32 month, int32 year) => (bool result, string report);
+
+  [Sync]
+  IsWalletCreated() => (bool wallet_created);
+
+  // TODO: need VisitData json serialize/deserialize
+  // GetPublisherActivityFromUrl(uint64 window_id, string visit_data);
+
+  [Sync]
+  GetContributionAmount() => (double contribution_amount);
+
+  // TODO: GetPublisherBanner
+
+  // TODO: json serialize/deserialize PublisherInfo
+  // DoDirectDonation(string publisher_info, int32 amount, string currency);
+
+  RemoveRecurring(string publisher_key);
+  SetPublisherPanelExclude(string publisher_key, int32 exclude,
+      uint64 window_id);
 };
 
 interface BatLedgerClient {
+  GenerateGUID() => (string guid);
   LoadLedgerState() => (int32 result, string data);
+  OnWalletInitialized(int32 result);
   LoadPublisherState() => (int32 result, string data);
   LoadPublisherList() => (int32 result, string data);
   SaveLedgerState(string ledger_state) => (int32 result);

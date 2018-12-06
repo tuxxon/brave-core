@@ -305,25 +305,31 @@ void RewardsServiceImpl::Init() {
   private_observers_.AddObserver(private_observer_.get());
 #endif
 
-  bat_ledger::mojom::BatLedgerClientAssociatedPtrInfo client_ptr_info;
-  bat_ledger_client_binding_.Bind(mojo::MakeRequest(&client_ptr_info));
-
-  content::ServiceManagerConnection* connection =
-    content::ServiceManagerConnection::GetForProcess();
-  DCHECK(connection);
-
-  connection->GetConnector()->BindInterface(
-      bat_ledger::mojom::kServiceName, &bat_ledger_service_);
+  content::ServiceManagerConnection::GetForProcess()->GetConnector()
+    ->BindInterface(bat_ledger::mojom::kServiceName, &bat_ledger_service_);
   bat_ledger_service_.set_connection_error_handler(
       base::Bind(&ConnectionClosed));
 
+  bool isProduction = true;
+  // Environment
+  #if defined(OFFICIAL_BUILD)
+    isProduction = true;
+  #else
+    isProduction = false;
+  #endif
+  bat_ledger_service_->SetProduction(isProduction);
+
+  bat_ledger::mojom::BatLedgerClientAssociatedPtrInfo client_ptr_info;
+  bat_ledger_client_binding_.Bind(mojo::MakeRequest(&client_ptr_info));
   bat_ledger_service_->Create(std::move(client_ptr_info),
       MakeRequest(&bat_ledger_));
+
+  bat_ledger_->Initialize();
 }
 
 void RewardsServiceImpl::CreateWallet() {
   if (ready().is_signaled()) {
-    ledger_->CreateWallet();
+    bat_ledger_->CreateWallet();
   } else {
     ready().Post(FROM_HERE,
         base::Bind(&brave_rewards::RewardsService::CreateWallet,
@@ -339,9 +345,9 @@ void RewardsServiceImpl::GetContentSiteList(
   filter.category = ledger::PUBLISHER_CATEGORY::AUTO_CONTRIBUTE;
   filter.month = GetPublisherMonth(now);
   filter.year = GetPublisherYear(now);
-  filter.min_duration = ledger_->GetPublisherMinVisitTime();
+  bat_ledger_->GetPublisherMinVisitTime(&(filter.min_duration)); // sync
   filter.order_by.push_back(std::pair<std::string, bool>("ai.percent", false));
-  filter.reconcile_stamp = ledger_->GetReconcileStamp();
+  bat_ledger_->GetReconcileStamp(&(filter.reconcile_stamp)); // sync
   filter.excluded =
     ledger::PUBLISHER_EXCLUDE_FILTER::FILTER_ALL_EXCEPT_EXCLUDED;
 
@@ -377,31 +383,31 @@ void RewardsServiceImpl::OnLoad(SessionID tab_id, const GURL& url) {
 
 void RewardsServiceImpl::OnUnload(SessionID tab_id) {
 
-  ledger_->OnUnload(tab_id.id(), GetCurrentTimestamp());
+  bat_ledger_->OnUnload(tab_id.id(), GetCurrentTimestamp());
 }
 
 void RewardsServiceImpl::OnShow(SessionID tab_id) {
-  ledger_->OnShow(tab_id.id(), GetCurrentTimestamp());
+  bat_ledger_->OnShow(tab_id.id(), GetCurrentTimestamp());
 }
 
 void RewardsServiceImpl::OnHide(SessionID tab_id) {
-  ledger_->OnHide(tab_id.id(), GetCurrentTimestamp());
+  bat_ledger_->OnHide(tab_id.id(), GetCurrentTimestamp());
 }
 
 void RewardsServiceImpl::OnForeground(SessionID tab_id) {
-  ledger_->OnForeground(tab_id.id(), GetCurrentTimestamp());
+  bat_ledger_->OnForeground(tab_id.id(), GetCurrentTimestamp());
 }
 
 void RewardsServiceImpl::OnBackground(SessionID tab_id) {
-  ledger_->OnBackground(tab_id.id(), GetCurrentTimestamp());
+  bat_ledger_->OnBackground(tab_id.id(), GetCurrentTimestamp());
 }
 
 void RewardsServiceImpl::OnMediaStart(SessionID tab_id) {
-  ledger_->OnMediaStart(tab_id.id(), GetCurrentTimestamp());
+  bat_ledger_->OnMediaStart(tab_id.id(), GetCurrentTimestamp());
 }
 
 void RewardsServiceImpl::OnMediaStop(SessionID tab_id) {
-  ledger_->OnMediaStop(tab_id.id(), GetCurrentTimestamp());
+  bat_ledger_->OnMediaStop(tab_id.id(), GetCurrentTimestamp());
 }
 
 void RewardsServiceImpl::OnPostData(SessionID tab_id,
@@ -498,11 +504,11 @@ base::PostTaskAndReplyWithResult(file_task_runner_.get(), FROM_HERE,
 }
 
 void RewardsServiceImpl::ExcludePublisher(const std::string publisherKey) const {
-  ledger_->SetPublisherExclude(publisherKey, ledger::PUBLISHER_EXCLUDE::EXCLUDED);
+  bat_ledger_->SetPublisherExclude(publisherKey, ledger::PUBLISHER_EXCLUDE::EXCLUDED);
 }
 
 void RewardsServiceImpl::RestorePublishers() {
-  ledger_->RestorePublishers();
+  bat_ledger_->RestorePublishers();
 }
 
 void RewardsServiceImpl::OnMediaPublisherInfoSaved(bool success) {
@@ -586,10 +592,10 @@ void RewardsServiceImpl::OnGrantFinish(ledger::Result result,
   ledger::BalanceReportInfo report_info;
   auto now = base::Time::Now();
   if (result == ledger::Result::LEDGER_OK) {
-    ledger_->SetBalanceReportItem(GetPublisherMonth(now),
-                                  GetPublisherYear(now),
-                                  ledger::ReportType::GRANT,
-                                  grant.probi);
+    bat_ledger_->SetBalanceReportItem(GetPublisherMonth(now),
+                                      GetPublisherYear(now),
+                                      ledger::ReportType::GRANT,
+                                      grant.probi);
   }
 
   TriggerOnGrantFinish(result, grant);
@@ -621,7 +627,7 @@ void RewardsServiceImpl::OnReconcileComplete(ledger::Result result,
   if (result == ledger::Result::LEDGER_OK) {
     auto now = base::Time::Now();
     FetchWalletProperties();
-    ledger_->OnReconcileCompleteSuccess(viewing_id,
+    bat_ledger_->OnReconcileCompleteSuccess(viewing_id,
         category,
         probi,
         GetPublisherMonth(now),
@@ -635,6 +641,7 @@ void RewardsServiceImpl::OnReconcileComplete(ledger::Result result,
 
 void RewardsServiceImpl::LoadLedgerState(
     ledger::LedgerCallbackHandler* handler) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
   base::PostTaskAndReplyWithResult(file_task_runner_.get(), FROM_HERE,
       base::Bind(&LoadStateOnFileTaskRunner, ledger_state_path_),
       base::Bind(&RewardsServiceImpl::OnLedgerStateLoaded,
@@ -645,6 +652,7 @@ void RewardsServiceImpl::LoadLedgerState(
 void RewardsServiceImpl::OnLedgerStateLoaded(
     ledger::LedgerCallbackHandler* handler,
     const std::string& data) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
   handler->OnLedgerStateLoaded(data.empty() ? ledger::Result::LEDGER_ERROR
                                             : ledger::Result::LEDGER_OK,
                                data);
@@ -652,6 +660,7 @@ void RewardsServiceImpl::OnLedgerStateLoaded(
 
 void RewardsServiceImpl::LoadPublisherState(
     ledger::LedgerCallbackHandler* handler) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
   base::PostTaskAndReplyWithResult(file_task_runner_.get(), FROM_HERE,
       base::Bind(&LoadStateOnFileTaskRunner, publisher_state_path_),
       base::Bind(&RewardsServiceImpl::OnPublisherStateLoaded,
@@ -662,6 +671,7 @@ void RewardsServiceImpl::LoadPublisherState(
 void RewardsServiceImpl::OnPublisherStateLoaded(
     ledger::LedgerCallbackHandler* handler,
     const std::string& data) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
   handler->OnPublisherStateLoaded(
       data.empty() ? ledger::Result::NO_PUBLISHER_STATE
                    : ledger::Result::LEDGER_OK,
@@ -982,7 +992,7 @@ void RewardsServiceImpl::TriggerOnWalletProperties(int error_code,
 
 void RewardsServiceImpl::FetchWalletProperties() {
   if (ready().is_signaled()) {
-    ledger_->FetchWalletProperties();
+    bat_ledger_->FetchWalletProperties();
   } else {
     ready().Post(FROM_HERE,
         base::Bind(&brave_rewards::RewardsService::FetchWalletProperties,
@@ -992,7 +1002,7 @@ void RewardsServiceImpl::FetchWalletProperties() {
 
 void RewardsServiceImpl::FetchGrant(const std::string& lang,
     const std::string& payment_id) {
-  ledger_->FetchGrant(lang, payment_id);
+  bat_ledger_->FetchGrant(lang, payment_id);
 }
 
 void RewardsServiceImpl::TriggerOnGrant(ledger::Result result,
@@ -1009,7 +1019,7 @@ void RewardsServiceImpl::TriggerOnGrant(ledger::Result result,
 }
 
 void RewardsServiceImpl::GetGrantCaptcha() {
-  ledger_->GetGrantCaptcha();
+  bat_ledger_->GetGrantCaptcha();
 }
 
 void RewardsServiceImpl::TriggerOnGrantCaptcha(const std::string& image, const std::string& hint) {
@@ -1018,15 +1028,19 @@ void RewardsServiceImpl::TriggerOnGrantCaptcha(const std::string& image, const s
 }
 
 std::string RewardsServiceImpl::GetWalletPassphrase() const {
-  return ledger_->GetWalletPassphrase();
+  std::string pass_phrase;
+  bat_ledger_->GetWalletPassphrase(&pass_phrase);
+  return pass_phrase;
 }
 
 unsigned int RewardsServiceImpl::GetNumExcludedSites() const {
-  return ledger_->GetNumExcludedSites();
+  uint32_t num_excluded_sites;
+  bat_ledger_->GetNumExcludedSites(&num_excluded_sites);
+  return num_excluded_sites;
 }
 
 void RewardsServiceImpl::RecoverWallet(const std::string passPhrase) const {
-  return ledger_->RecoverWallet(passPhrase);
+  bat_ledger_->RecoverWallet(passPhrase);
 }
 
 void RewardsServiceImpl::TriggerOnRecoverWallet(ledger::Result result,
@@ -1047,7 +1061,7 @@ void RewardsServiceImpl::TriggerOnRecoverWallet(ledger::Result result,
 }
 
 void RewardsServiceImpl::SolveGrantCaptcha(const std::string& solution) const {
-  return ledger_->SolveGrantCaptcha(solution);
+  bat_ledger_->SolveGrantCaptcha(solution);
 }
 
 void RewardsServiceImpl::TriggerOnGrantFinish(ledger::Result result,
@@ -1064,53 +1078,63 @@ void RewardsServiceImpl::TriggerOnGrantFinish(ledger::Result result,
 }
 
 uint64_t RewardsServiceImpl::GetReconcileStamp() const {
-  return ledger_->GetReconcileStamp();
+  uint64_t reconcile_stamp;
+  bat_ledger_->GetReconcileStamp(&reconcile_stamp);
+  return reconcile_stamp;
 }
 
 std::map<std::string, std::string> RewardsServiceImpl::GetAddresses() const {
   std::map<std::string, std::string> addresses;
-  addresses.emplace("BAT", ledger_->GetBATAddress());
-  addresses.emplace("BTC", ledger_->GetBTCAddress());
-  addresses.emplace("ETH", ledger_->GetETHAddress());
-  addresses.emplace("LTC", ledger_->GetLTCAddress());
+  std::string bat_address;
+  std::string btc_address;
+  std::string eth_address;
+  std::string ltc_address;
+  bat_ledger_->GetBATAddress(&bat_address);
+  bat_ledger_->GetBTCAddress(&btc_address);
+  bat_ledger_->GetETHAddress(&eth_address);
+  bat_ledger_->GetLTCAddress(&ltc_address);
+  addresses.emplace("BAT", bat_address);
+  addresses.emplace("BTC", btc_address);
+  addresses.emplace("ETH", eth_address);
+  addresses.emplace("LTC", ltc_address);
   return addresses;
 }
 
 void RewardsServiceImpl::SetRewardsMainEnabled(bool enabled) const {
-  return ledger_->SetRewardsMainEnabled(enabled);
+  bat_ledger_->SetRewardsMainEnabled(enabled);
 }
 
 void RewardsServiceImpl::SetPublisherMinVisitTime(
     uint64_t duration_in_seconds) const {
-  return ledger_->SetPublisherMinVisitTime(duration_in_seconds);
+  bat_ledger_->SetPublisherMinVisitTime(duration_in_seconds);
 }
 
 void RewardsServiceImpl::SetPublisherMinVisits(unsigned int visits) const {
-  return ledger_->SetPublisherMinVisits(visits);
+  bat_ledger_->SetPublisherMinVisits(visits);
 }
 
 void RewardsServiceImpl::SetPublisherAllowNonVerified(bool allow) const {
-  return ledger_->SetPublisherAllowNonVerified(allow);
+  bat_ledger_->SetPublisherAllowNonVerified(allow);
 }
 
 void RewardsServiceImpl::SetPublisherAllowVideos(bool allow) const {
-  return ledger_->SetPublisherAllowVideos(allow);
+  bat_ledger_->SetPublisherAllowVideos(allow);
 }
 
 void RewardsServiceImpl::SetContributionAmount(double amount) const {
-  ledger_->SetUserChangedContribution();
-  ledger_->SetContributionAmount(amount);
+  bat_ledger_->SetUserChangedContribution();
+  bat_ledger_->SetContributionAmount(amount);
 }
 
 // TODO: remove me (and pure virtual definition)
 // see https://github.com/brave/brave-core/commit/c4ef62c954a64fca18ae83ff8ffd611137323420#diff-aa3505dbf36b5d03d8ba0751e0c99904R385
 // and https://github.com/brave-intl/bat-native-ledger/commit/27f3ceb471d61c84052737ff201fe18cb9a6af32#diff-e303122e010480b2226895b9470891a3R135
 void RewardsServiceImpl::SetUserChangedContribution() const {
-  ledger_->SetUserChangedContribution();
+  bat_ledger_->SetUserChangedContribution();
 }
 
 void RewardsServiceImpl::SetAutoContribute(bool enabled) const {
-  return ledger_->SetAutoContribute(enabled);
+  bat_ledger_->SetAutoContribute(enabled);
 }
 
 void RewardsServiceImpl::TriggerOnContentSiteUpdated() {
@@ -1158,12 +1182,13 @@ void RewardsServiceImpl::SetTimer(uint64_t time_offset,
 }
 
 void RewardsServiceImpl::OnTimer(uint32_t timer_id) {
-  ledger_->OnTimer(timer_id);
+  bat_ledger_->OnTimer(timer_id);
   timers_.erase(timer_id);
 }
 
 void RewardsServiceImpl::LoadPublisherList(
     ledger::LedgerCallbackHandler* handler) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
   base::PostTaskAndReplyWithResult(file_task_runner_.get(), FROM_HERE,
                                    base::Bind(&LoadStateOnFileTaskRunner, publisher_list_path_),
                                    base::Bind(&RewardsServiceImpl::OnPublisherListLoaded,
@@ -1174,6 +1199,7 @@ void RewardsServiceImpl::LoadPublisherList(
 void RewardsServiceImpl::OnPublisherListLoaded(
     ledger::LedgerCallbackHandler* handler,
     const std::string& data) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
   handler->OnPublisherListLoaded(
       data.empty() ? ledger::Result::NO_PUBLISHER_LIST
                    : ledger::Result::LEDGER_OK,
@@ -1212,7 +1238,9 @@ void RewardsServiceImpl::GetCurrentBalanceReport() {
 }
 
 bool RewardsServiceImpl::IsWalletCreated() {
-  return ledger_->IsWalletCreated();
+  bool wallet_created;
+  bat_ledger_->IsWalletCreated(&wallet_created);
+  return wallet_created;
 }
 
 void RewardsServiceImpl::GetPublisherActivityFromUrl(uint64_t windowId,
@@ -1263,7 +1291,9 @@ void RewardsServiceImpl::OnPublisherActivity(ledger::Result result,
 }
 
 double RewardsServiceImpl::GetContributionAmount() {
-  return ledger_->GetContributionAmount();
+  double contribution_amount;
+  bat_ledger_->GetContributionAmount(&contribution_amount);
+  return contribution_amount;
 }
 
 void RewardsServiceImpl::FetchFavIcon(const std::string& url,
@@ -1532,7 +1562,7 @@ void RewardsServiceImpl::OnTipsUpdatedData(const ledger::PublisherInfoList list)
 }
 
 void RewardsServiceImpl::RemoveRecurring(const std::string& publisher_key) {
-  ledger_->RemoveRecurring(publisher_key);
+  bat_ledger_->RemoveRecurring(publisher_key);
 }
 
 void RewardsServiceImpl::TipsUpdated() {
@@ -1593,7 +1623,7 @@ void RewardsServiceImpl::TriggerOnGetPublisherActivityFromUrl(
 
 void RewardsServiceImpl::SetContributionAutoInclude(std::string publisher_key,
   bool excluded, uint64_t windowId) {
-  ledger_->SetPublisherPanelExclude(publisher_key, excluded ?
+  bat_ledger_->SetPublisherPanelExclude(publisher_key, excluded ?
     ledger::PUBLISHER_EXCLUDE::EXCLUDED : ledger::PUBLISHER_EXCLUDE::INCLUDED,
     windowId);
 }
