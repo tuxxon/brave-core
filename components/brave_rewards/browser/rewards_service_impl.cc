@@ -1621,8 +1621,8 @@ void RewardsServiceImpl::TriggerOnGetPublisherActivityFromUrl(
                                            windowId);
 }
 
-void RewardsServiceImpl::SetContributionAutoInclude(std::string publisher_key,
-  bool excluded, uint64_t windowId) {
+void RewardsServiceImpl::SetContributionAutoInclude(
+    const std::string& publisher_key, bool excluded, uint64_t windowId) {
   bat_ledger_->SetPublisherPanelExclude(publisher_key, excluded ?
     ledger::PUBLISHER_EXCLUDE::EXCLUDED : ledger::PUBLISHER_EXCLUDE::INCLUDED,
     windowId);
