@@ -22,6 +22,11 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
   void GenerateGUID(GenerateGUIDCallback callback) override;
   void LoadLedgerState(LoadLedgerStateCallback callback) override;
   void OnWalletInitialized(int32_t result) override;
+  void OnGrantCaptcha(const std::string& image,
+      const std::string& hint) override;
+  void OnReconcileComplete(int32_t result, const std::string& viewing_id,
+      int32_t category, const std::string& probi) override;
+
   void LoadPublisherState(LoadPublisherStateCallback callback) override;
   void LoadPublisherList(LoadPublisherListCallback callback) override;
   void SaveLedgerState(const std::string& ledger_state,
@@ -36,6 +41,24 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
       const std::string& contentType,
       int32_t method,
       LoadURLCallback callback) override;
+
+  void SetTimer(uint64_t time_offset, SetTimerCallback callback) override;
+  void OnExcludedSitesChanged() override;
+  void SaveContributionInfo(const std::string& probi, int32_t month,
+      int32_t year, uint32_t date, const std::string& publisher_key,
+      int32_t category) override;
+  void SaveMediaPublisherInfo(const std::string& media_key,
+      const std::string& publisher_id) override;
+  void FetchWalletProperties() override;
+  void FetchGrant(const std::string& lang,
+      const std::string& payment_id) override;
+  void GetGrantCaptcha() override;
+
+  void URIEncode(const std::string& value,
+      URIEncodeCallback callback) override;
+
+  void SetContributionAutoInclude(const std::string& publisher_key,
+      bool excluded, uint64_t window_id) override;
 
   // ledger::LedgerCallbackHandler
   void OnLedgerStateLoaded(ledger::Result result,
