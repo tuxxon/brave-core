@@ -65,7 +65,7 @@ class RewardsService : public KeyedService {
 
   virtual void CreateWallet() = 0;
   virtual void FetchWalletProperties() = 0;
-  virtual void GetCurrentContributeList(
+  virtual void GetContentSiteList(
       uint32_t start,
       uint32_t limit,
       uint64_t min_visit_time,

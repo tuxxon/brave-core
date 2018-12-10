@@ -80,8 +80,11 @@ class PublisherInfoDatabase {
 
   std::string GetDiagnosticInfo(int extended_error, sql::Statement* statement);
 
- private:
+  sql::Database& GetDB();
+
   bool Init();
+
+ private:
 
   bool CreateContributionInfoTable();
 
@@ -101,8 +104,6 @@ class PublisherInfoDatabase {
 
   void OnMemoryPressure(
     base::MemoryPressureListener::MemoryPressureLevel memory_pressure_level);
-
-  sql::Database& GetDB();
 
   sql::MetaTable& GetMetaTable();
 

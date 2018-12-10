@@ -109,7 +109,8 @@ void BatPublishers::saveVisit(const std::string& publisher_id,
       ledger_->GetReconcileStamp(),
       true);
 
-  ledger::PublisherInfoCallback callbackGetPublishers = std::bind(&BatPublishers::saveVisitInternal, this,
+  ledger::PublisherInfoCallback callbackGetPublishers =
+      std::bind(&BatPublishers::saveVisitInternal, this,
                 publisher_id,
                 visit_data,
                 duration,
@@ -124,12 +125,12 @@ ledger::ActivityInfoFilter BatPublishers::CreateActivityFilter(
     ledger::ACTIVITY_MONTH month,
     int year) {
   return CreateActivityFilter(publisher_id,
-                               month,
-                               year,
-                               ledger::EXCLUDE_FILTER::FILTER_ALL,
-                               true,
-                               0,
-                               true);
+                              month,
+                              year,
+                              ledger::EXCLUDE_FILTER::FILTER_ALL,
+                              true,
+                              0,
+                              true);
 }
 
 ledger::ActivityInfoFilter BatPublishers::CreateActivityFilter(
@@ -138,12 +139,12 @@ ledger::ActivityInfoFilter BatPublishers::CreateActivityFilter(
     int year,
     ledger::EXCLUDE_FILTER excluded) {
   return CreateActivityFilter(publisher_id,
-                               month,
-                               year,
-                               excluded,
-                               true,
-                               0,
-                               true);
+                              month,
+                              year,
+                              excluded,
+                              true,
+                              0,
+                              true);
 }
 
 ledger::ActivityInfoFilter BatPublishers::CreateActivityFilter(
@@ -152,12 +153,12 @@ ledger::ActivityInfoFilter BatPublishers::CreateActivityFilter(
     int year,
     bool min_duration) {
   return CreateActivityFilter(publisher_id,
-                               month,
-                               year,
-                               ledger::EXCLUDE_FILTER::FILTER_ALL,
-                               min_duration,
-                               0,
-                               true);
+                              month,
+                              year,
+                              ledger::EXCLUDE_FILTER::FILTER_ALL,
+                              min_duration,
+                              0,
+                              true);
 }
 
 ledger::ActivityInfoFilter BatPublishers::CreateActivityFilter(
@@ -274,7 +275,7 @@ void BatPublishers::saveVisitInternal(
                               std::bind(&onVisitSavedDummy, _1, _2));
   } else if (!excluded &&
              saveVisitAllowed() &&
-             min_duration_ok ||
+             min_duration_ok &&
              verified_old) {
     publisher_info->visits += 1;
     publisher_info->duration += duration;
@@ -570,7 +571,6 @@ void BatPublishers::synopsisNormalizerInternal(ledger::PublisherInfoList* newLis
 
 void BatPublishers::synopsisNormalizer(const ledger::PublisherInfo& info) {
   auto filter = CreateActivityFilter("",
-      ledger::REWARDS_CATEGORY::AUTO_CONTRIBUTE,
       info.month,
       info.year,
       ledger::EXCLUDE_FILTER::FILTER_ALL_EXCEPT_EXCLUDED,
@@ -747,9 +747,6 @@ void BatPublishers::OnPublisherStateSaved(ledger::Result result) {
     // TODO - error handling
     return;
   }
-  // SZ: We don't need to normalize on state save, all normalizing is done on AUTO_CONTRIBUTE publishers
-  // save visit
-  //synopsisNormalizer();
 }
 
 std::vector<ledger::ContributionInfo> BatPublishers::GetRecurringDonationList() {
@@ -807,7 +804,6 @@ void BatPublishers::getPublisherActivityFromUrl(uint64_t windowId, const ledger:
   }
 
   auto filter = CreateActivityFilter(visit_data.domain,
-        ledger::REWARDS_CATEGORY::AUTO_CONTRIBUTE,
         visit_data.local_month,
         visit_data.local_year,
         ledger::EXCLUDE_FILTER::FILTER_ALL,
