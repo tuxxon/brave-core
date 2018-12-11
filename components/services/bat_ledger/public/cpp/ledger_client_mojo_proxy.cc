@@ -26,6 +26,12 @@ ledger::PUBLISHER_CATEGORY ToLedgerPublisherCategory(int32_t category) {
   return (ledger::PUBLISHER_CATEGORY)category;
 }
 
+ledger::Grant ToLedgerGrant(const std::string& grant_json) {
+  ledger::Grant grant;
+  grant.loadFromJson(grant_json);
+  return grant;
+}
+
 } // anonymous namespace
 
 LedgerClientMojoProxy::LedgerClientMojoProxy(
@@ -141,9 +147,24 @@ void LedgerClientMojoProxy::OnURLRequestResponse(uint64_t request_id,
       mojo::MapToFlatMap(headers));
 }
 
+void LedgerClientMojoProxy::OnGrant(int32_t result, const std::string& grant) {
+  ledger_client_->OnGrant(ToLedgerResult(result), ToLedgerGrant(grant));
+}
+
 void LedgerClientMojoProxy::OnGrantCaptcha(const std::string& image,
     const std::string& hint) {
   ledger_client_->OnGrantCaptcha(image, hint);
+}
+
+void LedgerClientMojoProxy::OnRecoverWallet(int32_t result, double balance,
+    const std::vector<std::string>& grants) {
+  std::vector<ledger::Grant> ledger_grants;
+  for (auto const& grant : grants) {
+    ledger_grants.push_back(ToLedgerGrant(grant));
+  }
+
+  ledger_client_->OnRecoverWallet(
+      ToLedgerResult(result), balance, ledger_grants);
 }
 
 void LedgerClientMojoProxy::OnReconcileComplete(int32_t result,
@@ -152,6 +173,11 @@ void LedgerClientMojoProxy::OnReconcileComplete(int32_t result,
     const std::string& probi) {
   ledger_client_->OnReconcileComplete(ToLedgerResult(result), viewing_id,
       ToLedgerPublisherCategory(category), probi);
+}
+
+void LedgerClientMojoProxy::OnGrantFinish(int32_t result,
+    const std::string& grant) {
+  ledger_client_->OnGrantFinish(ToLedgerResult(result), ToLedgerGrant(grant));
 }
 
 void LedgerClientMojoProxy::SetTimer(uint64_t time_offset,

@@ -10,6 +10,7 @@
 
 #include "base/bind.h"
 #include "base/command_line.h"
+#include "base/containers/flat_map.h"
 #include "base/files/file_util.h"
 #include "base/files/important_file_writer.h"
 #include "base/guid.h"
@@ -45,6 +46,7 @@
 #include "content/public/common/service_manager_connection.h"
 #include "content_site.h"
 #include "extensions/buildflags/buildflags.h"
+#include "mojo/public/cpp/bindings/map.h"
 #include "net/base/escape.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "net/base/url_util.h"
@@ -378,7 +380,7 @@ void RewardsServiceImpl::OnLoad(SessionID tab_id, const GURL& url) {
                          origin.spec(),
                          "",
                          "");
-  ledger_->OnLoad(data, GetCurrentTimestamp());
+  bat_ledger_->OnLoad(data.ToJson(), GetCurrentTimestamp());
 }
 
 void RewardsServiceImpl::OnUnload(SessionID tab_id) {
@@ -439,11 +441,11 @@ void RewardsServiceImpl::OnPostData(SessionID tab_id,
       "",
       "");
 
-  ledger_->OnPostData(url.spec(),
-                      first_party_url.spec(),
-                      referrer.spec(),
-                      output,
-                      visit_data);
+  bat_ledger_->OnPostData(url.spec(),
+                          first_party_url.spec(),
+                          referrer.spec(),
+                          output,
+                          visit_data.ToJson());
 }
 
 void RewardsServiceImpl::OnXHRLoad(SessionID tab_id,
@@ -461,12 +463,12 @@ void RewardsServiceImpl::OnXHRLoad(SessionID tab_id,
                          GetPublisherMonth(now), GetPublisherYear(now),
                          "", "", "", "");
 
-  ledger_->OnXHRLoad(tab_id.id(),
+  bat_ledger_->OnXHRLoad(tab_id.id(),
                      url.spec(),
-                     parts,
+                     mojo::MapToFlatMap(parts),
                      first_party_url.spec(),
                      referrer.spec(),
-                     data);
+                     data.ToJson());
 }
 
 void RewardsServiceImpl::LoadMediaPublisherInfo(
@@ -1207,7 +1209,14 @@ void RewardsServiceImpl::OnPublisherListLoaded(
 }
 
 std::map<std::string, brave_rewards::BalanceReport> RewardsServiceImpl::GetAllBalanceReports() {
-  std::map<std::string, ledger::BalanceReportInfo> reports = ledger_->GetAllBalanceReports();
+  base::flat_map<std::string, std::string> json_reports;
+  bat_ledger_->GetAllBalanceReports(&json_reports);
+  std::map<std::string, ledger::BalanceReportInfo> reports;
+  for (auto const& report : json_reports) {
+    ledger::BalanceReportInfo info;
+    info.loadFromJson(report.second);
+    reports[report.first] = info;
+  }
 
   std::map<std::string, brave_rewards::BalanceReport> newReports;
   for (auto const& report : reports) {
@@ -1228,10 +1237,15 @@ std::map<std::string, brave_rewards::BalanceReport> RewardsServiceImpl::GetAllBa
 }
 
 void RewardsServiceImpl::GetCurrentBalanceReport() {
-  ledger::BalanceReportInfo report;
   auto now = base::Time::Now();
-  bool success = ledger_->GetBalanceReport(GetPublisherMonth(now),
-                                           GetPublisherYear(now), &report);
+  bool success = false;
+  std::string json_report;
+  bat_ledger_->GetBalanceReport(GetPublisherMonth(now), GetPublisherYear(now),
+      &success, &json_report);
+
+  ledger::BalanceReportInfo report;
+  report.loadFromJson(json_report);
+
   if (success) {
     TriggerOnGetCurrentBalanceReport(report);
   }
@@ -1272,7 +1286,7 @@ void RewardsServiceImpl::GetPublisherActivityFromUrl(uint64_t windowId,
   visitData.url = origin.spec();
   visitData.favicon_url = favicon_url;
 
-  ledger_->GetPublisherActivityFromUrl(windowId, visitData);
+  bat_ledger_->GetPublisherActivityFromUrl(windowId, visitData.ToJson());
 }
 
 void RewardsServiceImpl::OnExcludedSitesChanged() {
@@ -1417,7 +1431,7 @@ void RewardsServiceImpl::OnDonate(const std::string& publisher_key, int amount, 
     ledger::PUBLISHER_MONTH::ANY,
     -1);
 
-  ledger_->DoDirectDonation(publisher_info, amount, "BAT");
+  bat_ledger_->DoDirectDonation(publisher_info.ToJson(), amount, "BAT");
 }
 
 bool SaveContributionInfoOnFileTaskRunner(const brave_rewards::ContributionInfo info,
