@@ -21,7 +21,7 @@ interface BatLedger {
   [Sync]
   GetReconcileStamp() => (uint64 reconcile_stamp);
 
-  // TODO: GetPublisherInfoList
+  // TODO: GetPublisherInfoList, PublisherInfoListCallback, PublisherInfoFilter
 
   OnLoad(string visit_data, uint64 current_time);
   OnUnload(uint32 tab_id, uint64 current_time);
@@ -94,7 +94,7 @@ interface BatLedger {
   [Sync]
   GetContributionAmount() => (double contribution_amount);
 
-  // TODO: GetPublisherBanner
+  // TODO: GetPublisherBanner, ledger::PublisherBannerCallback
 
   DoDirectDonation(string publisher_info, int32 amount, string currency);
 
@@ -114,13 +114,31 @@ interface BatLedgerClient {
   SavePublisherState(string publisher_state) => (int32 result);
   SavePublishersList(string publishers_list) => (int32 result);
 
-  // TODO: OnWalletProperties(int32 result, ...
+  OnWalletProperties(int32 result, string info);
   OnGrant(int32 result, string grant);
   OnGrantCaptcha(string image, string hint);
   OnRecoverWallet(int32 result, double balance, array<string> grants);
   OnReconcileComplete(int32 result, string viewing_id, int32 category,
       string probi);
   OnGrantFinish(int32 result, string grant);
+
+  // TODO: ledger::PublisherInfoCallback, json serialize/deserialize PublisherInfoFilter
+  // TODO: SavePublisherInfo
+  // TODO: LoadPublisherInfo
+  // TODO: LoadPublisherInfoList
+  // TODO: LoadCurrentPublisherInfoList
+
+  // TODO: RunIOTask, std::unique_ptr<ledger::LedgerTaskRunner> task
+
+  OnPublisherActivity(int32 result, string info, uint64 window_id);
+  // TODO: FetchFavIcon, ledger::FetchIconCallback callback
+  // TODO: GetRecurringDonations, ledger::PublisherInfoListCallback
+  // TODO: Log
+  // TODO: LoadMediaPublisherInfo, ledger::PublisherInfoCallback
+
+  // TODO: LoadNicewareList, ledger::GetNicewareListCallback
+  // TODO: OnRemoveRecurring, ledger::RecurringRemoveCallback
+
 
   // TODO: handle LedgerURLLoader
   LoadURL(string url, array<string> headers, string content,

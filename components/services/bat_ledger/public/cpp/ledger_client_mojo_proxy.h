@@ -22,6 +22,7 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
   void GenerateGUID(GenerateGUIDCallback callback) override;
   void LoadLedgerState(LoadLedgerStateCallback callback) override;
   void OnWalletInitialized(int32_t result) override;
+  void OnWalletProperties(int32_t result, const std::string& info) override;
   void OnGrant(int32_t result, const std::string& grant) override;
   void OnGrantCaptcha(const std::string& image,
       const std::string& hint) override;
@@ -47,6 +48,8 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
       LoadURLCallback callback) override;
 
   void SetTimer(uint64_t time_offset, SetTimerCallback callback) override;
+  void OnPublisherActivity(int32_t result, const std::string& info,
+      uint64_t window_id) override;
   void OnExcludedSitesChanged() override;
   void SaveContributionInfo(const std::string& probi, int32_t month,
       int32_t year, uint32_t date, const std::string& publisher_key,
