@@ -122,22 +122,27 @@ interface BatLedgerClient {
       string probi);
   OnGrantFinish(int32 result, string grant);
 
-  // TODO: ledger::PublisherInfoCallback, json serialize/deserialize PublisherInfoFilter
-  // TODO: SavePublisherInfo
-  // TODO: LoadPublisherInfo
-  // TODO: LoadPublisherInfoList
-  // TODO: LoadCurrentPublisherInfoList
+  SavePublisherInfo(string publisher_info) => (int32 result,
+      string publisher_info);
+  LoadPublisherInfo(string filter) => (int32 result, string publisher_info);
+  LoadPublisherInfoList(uint32 start, uint32 limit, string filter) => (
+      array<string> publisher_info_list, uint32 next_record);
+  LoadCurrentPublisherInfoList(uint32 start, uint32 limit, string filter) => (
+      array<string> publisher_info_list, uint32 next_record);
+  LoadMediaPublisherInfo(string media_key) => (int32 result,
+      string publisher_info);
 
   // TODO: RunIOTask, std::unique_ptr<ledger::LedgerTaskRunner> task
 
   OnPublisherActivity(int32 result, string info, uint64 window_id);
-  // TODO: FetchFavIcon, ledger::FetchIconCallback callback
-  // TODO: GetRecurringDonations, ledger::PublisherInfoListCallback
+  FetchFavIcon(string url, string favicon_key) => (bool success,
+      string favicon_url);
+  GetRecurringDonations() => (array<string> publisher_info_list,
+      uint32 next_record);
   // TODO: Log
-  // TODO: LoadMediaPublisherInfo, ledger::PublisherInfoCallback
 
-  // TODO: LoadNicewareList, ledger::GetNicewareListCallback
-  // TODO: OnRemoveRecurring, ledger::RecurringRemoveCallback
+  LoadNicewareList() => (int32 result, string data);
+  OnRemoveRecurring(string publisher_key) => (int32 result);
 
 
   // TODO: handle LedgerURLLoader

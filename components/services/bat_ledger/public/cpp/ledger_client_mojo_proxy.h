@@ -7,13 +7,15 @@
 
 #include <map>
 
+#include "base/memory/weak_ptr.h"
 #include "bat/ledger/ledger_client.h"
 #include "brave/components/services/bat_ledger/public/interfaces/bat_ledger.mojom.h"
 
 namespace bat_ledger {
 
 class LedgerClientMojoProxy : public mojom::BatLedgerClient,
-                              public ledger::LedgerCallbackHandler {
+                          public ledger::LedgerCallbackHandler,
+                          public base::SupportsWeakPtr<LedgerClientMojoProxy> {
  public:
   LedgerClientMojoProxy(ledger::LedgerClient* ledger_client);
   ~LedgerClientMojoProxy() override;
@@ -46,6 +48,27 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
       const std::string& contentType,
       int32_t method,
       LoadURLCallback callback) override;
+
+  void SavePublisherInfo(const std::string& publisher_info,
+      SavePublisherInfoCallback callback) override;
+  void LoadPublisherInfo(const std::string& filter,
+      LoadPublisherInfoCallback callback) override;
+  void LoadPublisherInfoList(uint32_t start, uint32_t limit,
+      const std::string& filter,
+      LoadPublisherInfoListCallback callback) override;
+  void LoadCurrentPublisherInfoList(uint32_t start, uint32_t limit,
+      const std::string& filter,
+      LoadCurrentPublisherInfoListCallback callback) override;
+  void LoadMediaPublisherInfo(const std::string& media_key,
+      LoadMediaPublisherInfoCallback callback) override;
+
+  void FetchFavIcon(const std::string& url, const std::string& favicon_key,
+      FetchFavIconCallback callback) override;
+  void GetRecurringDonations(GetRecurringDonationsCallback callback) override;
+
+  void LoadNicewareList(LoadNicewareListCallback callback) override;
+  void OnRemoveRecurring(const std::string& publisher_key,
+      OnRemoveRecurringCallback callback) override;
 
   void SetTimer(uint64_t time_offset, SetTimerCallback callback) override;
   void OnPublisherActivity(int32_t result, const std::string& info,
@@ -84,6 +107,66 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
       const std::map<std::string, std::string>& headers) override;
 
  private:
+  // workaround to pass base::OnceCallback into std::bind
+  template <typename Callback>
+  class CallbackHolder {
+   public:
+    CallbackHolder(base::WeakPtr<LedgerClientMojoProxy> client,
+        Callback callback)
+        : client_(client),
+          callback_(std::move(callback)) {}
+    ~CallbackHolder() = default;
+    bool is_valid() { return !!client_.get(); }
+    Callback& get() { return callback_; }
+
+   private:
+    base::WeakPtr<LedgerClientMojoProxy> client_;
+    Callback callback_;
+  };
+
+  static void OnSavePublisherInfo(
+      CallbackHolder<SavePublisherInfoCallback>* holder,
+      ledger::Result result,
+      std::unique_ptr<ledger::PublisherInfo> info);
+
+  static void OnLoadPublisherInfo(
+      CallbackHolder<LoadPublisherInfoCallback>* holder,
+      ledger::Result result,
+      std::unique_ptr<ledger::PublisherInfo> info);
+
+  static void OnLoadPublisherInfoList(
+      CallbackHolder<LoadPublisherInfoListCallback>* holder,
+      const ledger::PublisherInfoList& list,
+      uint32_t next_record);
+
+  static void OnLoadCurrentPublisherInfoList(
+      CallbackHolder<LoadCurrentPublisherInfoListCallback>* holder,
+      const ledger::PublisherInfoList& list,
+      uint32_t next_record);
+
+  static void OnLoadMediaPublisherInfo(
+      CallbackHolder<LoadMediaPublisherInfoCallback>* holder,
+      ledger::Result result,
+      std::unique_ptr<ledger::PublisherInfo> info);
+
+  static void OnFetchFavIcon(
+      CallbackHolder<FetchFavIconCallback>* holder,
+      bool success,
+      const std::string& favicon_url);
+
+  static void OnGetRecurringDonations(
+      CallbackHolder<GetRecurringDonationsCallback>* holder,
+      const ledger::PublisherInfoList& publisher_info_list,
+      uint32_t next_record);
+
+  static void OnLoadNicewareList(
+      CallbackHolder<LoadNicewareListCallback>* holder,
+      int32_t result, const std::string& data);
+
+  static void OnRecurringRemoved(
+      CallbackHolder<OnRemoveRecurringCallback>* holder,
+      int32_t result);
+
   ledger::LedgerClient* ledger_client_;
   LoadLedgerStateCallback load_ledger_state_callback_;
   LoadPublisherStateCallback load_publisher_state_callback_;

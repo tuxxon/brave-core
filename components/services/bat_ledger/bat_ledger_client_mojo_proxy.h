@@ -46,19 +46,19 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient,
                           ledger::LedgerCallbackHandler* handler) override;
 
   void SavePublisherInfo(std::unique_ptr<ledger::PublisherInfo> publisher_info,
-                         ledger::PublisherInfoCallback callback) override {}
+                         ledger::PublisherInfoCallback callback) override;
   void LoadPublisherInfo(ledger::PublisherInfoFilter filter,
-                         ledger::PublisherInfoCallback callback) override {}
+                         ledger::PublisherInfoCallback callback) override;
   void LoadPublisherInfoList(
       uint32_t start,
       uint32_t limit,
       ledger::PublisherInfoFilter filter,
-      ledger::PublisherInfoListCallback callback) override {}
+      ledger::PublisherInfoListCallback callback) override;
   void LoadCurrentPublisherInfoList(
       uint32_t start,
       uint32_t limit,
       ledger::PublisherInfoFilter filter,
-      ledger::PublisherInfoListCallback callback) override {}
+      ledger::PublisherInfoListCallback callback) override;
   void SavePublishersList(const std::string& publishers_list,
                           ledger::LedgerCallbackHandler* handler) override;
   void SetTimer(uint64_t time_offset, uint32_t& timer_id) override;
@@ -74,22 +74,22 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient,
   void RunIOTask(std::unique_ptr<ledger::LedgerTaskRunner> task) override {}
   void OnExcludedSitesChanged() override;
   void OnPublisherActivity(ledger::Result result,
-                          std::unique_ptr<ledger::PublisherInfo> info,
-                          uint64_t windowId) override;
+                           std::unique_ptr<ledger::PublisherInfo> info,
+                           uint64_t windowId) override;
   void FetchFavIcon(const std::string& url,
                     const std::string& favicon_key,
-                    ledger::FetchIconCallback callback) override {}
+                    ledger::FetchIconCallback callback) override;
   void SaveContributionInfo(const std::string& probi,
                             const int month,
                             const int year,
                             const uint32_t date,
                             const std::string& publisher_key,
                             const ledger::PUBLISHER_CATEGORY category) override;
-  void GetRecurringDonations(ledger::PublisherInfoListCallback callback) override {}
+  void GetRecurringDonations(ledger::PublisherInfoListCallback callback) override;
   void Log(ledger::LogLevel level, const std::string& text) override {}
   void LoadMediaPublisherInfo(
       const std::string& media_key,
-      ledger::PublisherInfoCallback callback) override {}
+      ledger::PublisherInfoCallback callback) override;
   void SaveMediaPublisherInfo(const std::string& media_key, const std::string& publisher_id) override;
 
   void FetchWalletProperties() override;
@@ -102,8 +102,9 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient,
       bool excluded, uint64_t windowId) override;
 
  private:
-  void LoadNicewareList(ledger::GetNicewareListCallback callback) override {}
-  void OnRemoveRecurring(const std::string& publisher_key, ledger::RecurringRemoveCallback callback) override {}
+  void LoadNicewareList(ledger::GetNicewareListCallback callback) override;
+  void OnRemoveRecurring(const std::string& publisher_key,
+      ledger::RecurringRemoveCallback callback) override;
 
   mojom::BatLedgerClientAssociatedPtr bat_ledger_client_;
 

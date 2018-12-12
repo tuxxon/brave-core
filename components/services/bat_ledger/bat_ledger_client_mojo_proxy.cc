@@ -183,6 +183,96 @@ std::unique_ptr<ledger::LedgerURLLoader> BatLedgerClientMojoProxy::LoadURL(
   return nullptr; // TODO
 }
 
+void OnSavePublisherInfo(const ledger::PublisherInfoCallback& callback,
+    int32_t result, const std::string& publisher_info) {
+  std::unique_ptr<ledger::PublisherInfo> info;
+  info->loadFromJson(publisher_info);
+  callback(ToLedgerResult(result), std::move(info));
+}
+
+void BatLedgerClientMojoProxy::SavePublisherInfo(
+    std::unique_ptr<ledger::PublisherInfo> publisher_info,
+    ledger::PublisherInfoCallback callback) {
+  bat_ledger_client_->SavePublisherInfo(publisher_info->ToJson(),
+      base::BindOnce(&OnSavePublisherInfo, std::move(callback)));
+}
+
+void OnLoadPublisherInfo(const ledger::PublisherInfoCallback& callback,
+    int32_t result, const std::string& publisher_info) {
+  std::unique_ptr<ledger::PublisherInfo> info;
+  info->loadFromJson(publisher_info);
+  callback(ToLedgerResult(result), std::move(info));
+}
+
+void BatLedgerClientMojoProxy::LoadPublisherInfo(
+    ledger::PublisherInfoFilter filter,
+    ledger::PublisherInfoCallback callback) {
+  bat_ledger_client_->LoadPublisherInfo(filter.ToJson(),
+      base::BindOnce(&OnLoadPublisherInfo, std::move(callback)));
+}
+
+void OnLoadPublisherInfoList(const ledger::PublisherInfoListCallback& callback,
+    const std::vector<std::string>& publisher_info_list,
+    uint32_t next_record) {
+  ledger::PublisherInfoList list;
+
+  for (const auto& publisher_info : publisher_info_list) {
+    ledger::PublisherInfo info;
+    info.loadFromJson(publisher_info);
+    list.push_back(info);
+  }
+
+  callback(list, next_record);
+}
+
+void BatLedgerClientMojoProxy::LoadPublisherInfoList(
+    uint32_t start,
+    uint32_t limit,
+    ledger::PublisherInfoFilter filter,
+    ledger::PublisherInfoListCallback callback) {
+  bat_ledger_client_->LoadPublisherInfoList(start, limit, filter.ToJson(),
+      base::BindOnce(&OnLoadPublisherInfoList, std::move(callback)));
+}
+
+void OnLoadCurrentPublisherInfoList(
+    const ledger::PublisherInfoListCallback& callback,
+    const std::vector<std::string>& publisher_info_list,
+    uint32_t next_record) {
+  ledger::PublisherInfoList list;
+
+  for (const auto& publisher_info : publisher_info_list) {
+    ledger::PublisherInfo info;
+    info.loadFromJson(publisher_info);
+    list.push_back(info);
+  }
+
+  callback(list, next_record);
+}
+
+void BatLedgerClientMojoProxy::LoadCurrentPublisherInfoList(
+    uint32_t start,
+    uint32_t limit,
+    ledger::PublisherInfoFilter filter,
+    ledger::PublisherInfoListCallback callback) {
+  bat_ledger_client_->LoadCurrentPublisherInfoList(
+      start, limit, filter.ToJson(),
+      base::BindOnce(&OnLoadCurrentPublisherInfoList, std::move(callback)));
+}
+
+void OnLoadMediaPublisherInfo(const ledger::PublisherInfoCallback& callback,
+    int32_t result, const std::string& publisher_info) {
+  std::unique_ptr<ledger::PublisherInfo> info;
+  info->loadFromJson(publisher_info);
+  callback(ToLedgerResult(result), std::move(info));
+}
+
+void BatLedgerClientMojoProxy::LoadMediaPublisherInfo(
+    const std::string& media_key,
+    ledger::PublisherInfoCallback callback) {
+  bat_ledger_client_->LoadMediaPublisherInfo(media_key,
+      base::BindOnce(&OnLoadMediaPublisherInfo, std::move(callback)));
+}
+
 void BatLedgerClientMojoProxy::SetTimer(uint64_t time_offset,
     uint32_t& timer_id) {
   bat_ledger_client_->SetTimer(time_offset, &timer_id); // sync
@@ -197,6 +287,61 @@ void BatLedgerClientMojoProxy::OnPublisherActivity(ledger::Result result,
     uint64_t windowId) {
   bat_ledger_client_->OnPublisherActivity(ToMojomResult(result),
       info->ToJson(), windowId);
+}
+
+void OnFetchFavIcon(const ledger::FetchIconCallback& callback,
+    bool success, const std::string& favicon_url) {
+  callback(success, favicon_url);
+}
+
+void BatLedgerClientMojoProxy::FetchFavIcon(const std::string& url,
+    const std::string& favicon_key,
+    ledger::FetchIconCallback callback) {
+  bat_ledger_client_->FetchFavIcon(url, favicon_key,
+      base::BindOnce(&OnFetchFavIcon, std::move(callback)));
+}
+
+void OnGetRecurringDonations(const ledger::PublisherInfoListCallback& callback,
+    const std::vector<std::string>& publisher_info_list,
+    uint32_t next_record) {
+  ledger::PublisherInfoList list;
+
+  for (const auto& publisher_info : publisher_info_list) {
+    ledger::PublisherInfo info;
+    info.loadFromJson(publisher_info);
+    list.push_back(info);
+  }
+
+  callback(list, next_record);
+}
+
+void BatLedgerClientMojoProxy::GetRecurringDonations(
+    ledger::PublisherInfoListCallback callback) {
+  bat_ledger_client_->GetRecurringDonations(
+      base::BindOnce(&OnGetRecurringDonations, std::move(callback)));
+}
+
+void OnLoadNicewareList(const ledger::GetNicewareListCallback& callback,
+    int32_t result, const std::string& data) {
+  callback(ToLedgerResult(result), data);
+}
+
+void BatLedgerClientMojoProxy::LoadNicewareList(
+    ledger::GetNicewareListCallback callback) {
+  bat_ledger_client_->LoadNicewareList(
+      base::BindOnce(&OnLoadNicewareList, std::move(callback)));
+}
+
+void OnRecurringRemoved(const ledger::RecurringRemoveCallback& callback,
+    int32_t result) {
+  callback(ToLedgerResult(result));
+}
+
+void BatLedgerClientMojoProxy::OnRemoveRecurring(
+    const std::string& publisher_key,
+    ledger::RecurringRemoveCallback callback) {
+  bat_ledger_client_->OnRemoveRecurring(publisher_key,
+      base::BindOnce(&OnRecurringRemoved, std::move(callback)));
 }
 
 void BatLedgerClientMojoProxy::SaveContributionInfo(const std::string& probi,
