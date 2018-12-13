@@ -7,6 +7,7 @@
 
 #include <memory>
 
+#include "base/memory/weak_ptr.h"
 #include "bat/ledger/ledger.h"
 #include "brave/components/services/bat_ledger/public/interfaces/bat_ledger.mojom.h"
 
@@ -14,7 +15,8 @@ namespace bat_ledger {
 
 class BatLedgerClientMojoProxy;
 
-class BatLedgerImpl : public mojom::BatLedger {
+class BatLedgerImpl : public mojom::BatLedger,
+                      public base::SupportsWeakPtr<BatLedgerImpl> {
   public:
     explicit BatLedgerImpl(
         mojom::BatLedgerClientAssociatedPtrInfo client_info);
@@ -94,6 +96,11 @@ class BatLedgerImpl : public mojom::BatLedger {
 
     void GetContributionAmount(
       GetContributionAmountCallback callback) override;
+    void GetPublisherBanner(const std::string& publisher_id,
+        GetPublisherBannerCallback callback) override;
+    void GetPublisherInfoList(uint32_t start, uint32_t limit,
+        const std::string& filter,
+        GetPublisherInfoListCallback callback) override;
 
     void DoDirectDonation(const std::string& publisher_info, int32_t amount,
         const std::string& currency) override;
@@ -103,6 +110,32 @@ class BatLedgerImpl : public mojom::BatLedger {
         int32_t exclude, uint64_t window_id) override;
 
   private:
+    // workaround to pass base::OnceCallback into std::bind
+    template <typename Callback>
+      class CallbackHolder {
+        public:
+          CallbackHolder(base::WeakPtr<BatLedgerImpl> client,
+              Callback callback)
+            : client_(client),
+            callback_(std::move(callback)) {}
+          ~CallbackHolder() = default;
+          bool is_valid() { return !!client_.get(); }
+          Callback& get() { return callback_; }
+
+        private:
+          base::WeakPtr<BatLedgerImpl> client_;
+          Callback callback_;
+      };
+
+    static void OnGetPublisherBanner(
+        CallbackHolder<GetPublisherBannerCallback>* holder,
+        std::unique_ptr<ledger::PublisherBanner> banner);
+
+    static void OnGetPublisherInfoList(
+        CallbackHolder<GetPublisherInfoListCallback>* holder,
+        const ledger::PublisherInfoList& list,
+        uint32_t next_record);
+
     std::unique_ptr<BatLedgerClientMojoProxy> bat_ledger_client_mojo_proxy_;
     std::unique_ptr<ledger::Ledger> ledger_;
 

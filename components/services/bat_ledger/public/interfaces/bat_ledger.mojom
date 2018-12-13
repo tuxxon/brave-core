@@ -21,7 +21,8 @@ interface BatLedger {
   [Sync]
   GetReconcileStamp() => (uint64 reconcile_stamp);
 
-  // TODO: GetPublisherInfoList, PublisherInfoListCallback, PublisherInfoFilter
+  GetPublisherInfoList(uint32 start, uint32 limit, string filter) => (
+      array<string> publisher_info_list, uint32 next_record);
 
   OnLoad(string visit_data, uint64 current_time);
   OnUnload(uint32 tab_id, uint64 current_time);
@@ -94,7 +95,7 @@ interface BatLedger {
   [Sync]
   GetContributionAmount() => (double contribution_amount);
 
-  // TODO: GetPublisherBanner, ledger::PublisherBannerCallback
+  GetPublisherBanner(string publisher_id) => (string banner);
 
   DoDirectDonation(string publisher_info, int32 amount, string currency);
 
@@ -143,7 +144,6 @@ interface BatLedgerClient {
 
   LoadNicewareList() => (int32 result, string data);
   OnRemoveRecurring(string publisher_key) => (int32 result);
-
 
   // TODO: handle LedgerURLLoader
   LoadURL(string url, array<string> headers, string content,

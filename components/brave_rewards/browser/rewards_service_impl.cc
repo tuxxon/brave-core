@@ -353,12 +353,29 @@ void RewardsServiceImpl::GetContentSiteList(
   filter.excluded =
     ledger::PUBLISHER_EXCLUDE_FILTER::FILTER_ALL_EXCEPT_EXCLUDED;
 
-  ledger_->GetPublisherInfoList(start, limit,
-      filter,
-      std::bind(&GetContentSiteListInternal,
+  bat_ledger_->GetPublisherInfoList(start, limit,
+      filter.ToJson(),
+      base::BindOnce(&RewardsServiceImpl::OnGetPublisherInfoList, AsWeakPtr(),
                 start,
                 limit,
-                callback, _1, _2));
+                callback));
+}
+
+void RewardsServiceImpl::OnGetPublisherInfoList(
+    uint32_t start, uint32_t limit,
+    const GetContentSiteListCallback& callback,
+    const std::vector<std::string>& publisher_info_list,
+    uint32_t next_record) {
+  ledger::PublisherInfoList list;
+
+  for (const auto& i : publisher_info_list) {
+    ledger::PublisherInfo info;
+    info.loadFromJson(i);
+    list.push_back(info);
+  }
+
+  GetContentSiteListInternal(start, limit, callback, std::move(list),
+      next_record);
 }
 
 void RewardsServiceImpl::OnLoad(SessionID tab_id, const GURL& url) {
@@ -545,7 +562,7 @@ void RewardsServiceImpl::Shutdown() {
   }
   fetchers_.clear();
 
-  ledger_.reset();
+  bat_ledger_.reset();
   RewardsService::Shutdown();
 }
 
@@ -801,7 +818,7 @@ void RewardsServiceImpl::LoadPublisherInfoList(
   auto now = base::Time::Now();
   filter.month = GetPublisherMonth(now);
   filter.year = GetPublisherYear(now);
-  filter.reconcile_stamp = ledger_->GetReconcileStamp();
+  bat_ledger_->GetReconcileStamp(&filter.reconcile_stamp);
 
   base::PostTaskAndReplyWithResult(file_task_runner_.get(), FROM_HERE,
       base::Bind(&LoadPublisherInfoListOnFileTaskRunner,
@@ -1396,8 +1413,16 @@ void RewardsServiceImpl::OnSetOnDemandFaviconComplete(const std::string& favicon
 }
 
 void RewardsServiceImpl::GetPublisherBanner(const std::string& publisher_id) {
-  ledger_->GetPublisherBanner(publisher_id,
-      std::bind(&RewardsServiceImpl::OnPublisherBanner, this, _1));
+  bat_ledger_->GetPublisherBanner(publisher_id,
+      base::BindOnce(&RewardsServiceImpl::OnPublisherBannerMojoProxy,
+        AsWeakPtr()));
+}
+
+void RewardsServiceImpl::OnPublisherBannerMojoProxy(
+    const std::string& banner) {
+  std::unique_ptr<ledger::PublisherBanner> publisher_banner;
+  publisher_banner->loadFromJson(banner);
+  OnPublisherBanner(std::move(publisher_banner));
 }
 
 void RewardsServiceImpl::OnPublisherBanner(std::unique_ptr<ledger::PublisherBanner> banner) {

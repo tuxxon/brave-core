@@ -272,6 +272,13 @@ class RewardsServiceImpl : public RewardsService,
   // URLFetcherDelegate impl
   void OnURLFetchComplete(const net::URLFetcher* source) override;
 
+  // Mojo Proxy methods
+  void OnPublisherBannerMojoProxy(const std::string& banner);
+  void OnGetPublisherInfoList(uint32_t start, uint32_t limit,
+    const GetContentSiteListCallback& callback,
+    const std::vector<std::string>& publisher_info_list,
+    uint32_t next_record);
+
   Profile* profile_;  // NOT OWNED
   std::unique_ptr<ledger::Ledger> ledger_; // TODO: remove this
   mojo::AssociatedBinding<bat_ledger::mojom::BatLedgerClient>
