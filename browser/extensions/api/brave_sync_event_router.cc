@@ -130,6 +130,18 @@ void BraveSyncEventRouter::NeedSyncWords(const std::string& seed) {
   event_router_->BroadcastEvent(std::move(event));
 }
 
+void BraveSyncEventRouter::DeleteSyncUser() {
+  std::unique_ptr<base::ListValue> args(
+     extensions::api::brave_sync::OnDeleteSyncUser::Create()
+       .release());
+
+  std::unique_ptr<Event> event(
+     new Event(extensions::events::FOR_TEST,
+       extensions::api::brave_sync::OnDeleteSyncUser::kEventName,
+       std::move(args)));
+  event_router_->BroadcastEvent(std::move(event));
+}
+
 void BraveSyncEventRouter::LoadClient() {
   std::unique_ptr<base::ListValue> args(
      extensions::api::brave_sync::OnLoadClient::Create()

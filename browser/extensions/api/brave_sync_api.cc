@@ -139,6 +139,14 @@ ExtensionFunction::ResponseAction BraveSyncSaveBookmarksBaseOrderFunction::Run()
   return RespondNow(NoArguments());
 }
 
+ExtensionFunction::ResponseAction BraveSyncDeletedSyncUserFunction::Run() {
+  BraveSyncService* sync_service = GetBraveSyncService(browser_context());
+  DCHECK(sync_service);
+  sync_service->GetSyncClient()->sync_message_handler()->OnDeletedSyncUser();
+
+  return RespondNow(NoArguments());
+}
+
 ExtensionFunction::ResponseAction BraveSyncSyncWordsPreparedFunction::Run() {
   std::unique_ptr<brave_sync::SyncWordsPrepared::Params> params(
       brave_sync::SyncWordsPrepared::Params::Create(*args_));

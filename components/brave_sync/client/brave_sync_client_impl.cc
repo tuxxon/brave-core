@@ -104,7 +104,8 @@ void BraveSyncClientImpl::SendSyncRecords(const std::string &category_name,
 }
 
 void BraveSyncClientImpl::SendDeleteSyncUser()  {
-  NOTIMPLEMENTED();
+  DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
+  brave_sync_event_router_->DeleteSyncUser();
 }
 
 void BraveSyncClientImpl::SendDeleteSyncCategory(const std::string &category_name) {

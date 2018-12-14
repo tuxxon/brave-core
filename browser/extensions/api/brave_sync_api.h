@@ -70,6 +70,12 @@ class BraveSyncExtensionInitializedFunction : public UIThreadExtensionFunction {
   ResponseAction Run() override;
 };
 
+class BraveSyncDeletedSyncUserFunction : public UIThreadExtensionFunction {
+  ~BraveSyncDeletedSyncUserFunction() override {}
+  DECLARE_EXTENSION_FUNCTION("braveSync.deletedSyncUser", UNKNOWN)
+  ResponseAction Run() override;
+};
+
 } // namespace api
 } // namespace extensions
 

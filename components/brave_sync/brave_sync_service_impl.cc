@@ -239,16 +239,9 @@ void BraveSyncServiceImpl::OnResetSync() {
 
   const std::string device_id = sync_prefs_->GetThisDeviceId();
 
-  bookmark_change_processor_->Reset();
-
   OnDeleteDevice(device_id);
 
-  sync_prefs_->Clear();
-
-  sync_configured_ = false;
-  sync_initialized_ = false;
-
-  sync_prefs_->SetSyncEnabled(false);
+  sync_client_->SendDeleteSyncUser();
 }
 
 void BraveSyncServiceImpl::GetSettingsAndDevices(
@@ -505,7 +498,14 @@ void BraveSyncServiceImpl::OnSyncPrefsChanged(const std::string& pref) {
 }
 
 void BraveSyncServiceImpl::OnDeletedSyncUser() {
-  NOTIMPLEMENTED();
+  bookmark_change_processor_->Reset();
+
+  sync_prefs_->Clear();
+
+  sync_configured_ = false;
+  sync_initialized_ = false;
+
+  sync_prefs_->SetSyncEnabled(false);
 }
 
 void BraveSyncServiceImpl::OnDeleteSyncSiteSettings()  {

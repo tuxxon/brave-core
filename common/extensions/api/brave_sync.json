@@ -284,6 +284,12 @@
         ]
       },
       {
+        "name": "onDeleteSyncUser",
+        "type": "function",
+        "description": "browser sends this to delete the current user.",
+        "parameters": []
+      },
+      {
         "name": "onLoadClient",
         "type": "function",
         "description": "Browser informs extension page to load js sync library.",
@@ -412,6 +418,12 @@
             "name": "order"
           }
         ]
+      },
+      {
+        "name": "deletedSyncUser",
+        "type": "function",
+        "description": "sent after the user is successfully deleted.",
+        "parameters": []
       },
       {
         "name": "syncWordsPrepared",

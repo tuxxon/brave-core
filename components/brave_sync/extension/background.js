@@ -77,6 +77,11 @@ chrome.braveSync.onNeedSyncWords.addListener(function(seed) {
   chrome.braveSync.syncWordsPrepared(words);
 });
 
+chrome.braveSync.onDeleteSyncUser.addListener(function() {
+  console.log("delete-sync-user");
+  callbackList["delete-sync-user"](null);
+});
+
 chrome.braveSync.onLoadClient.addListener(function() {
   console.log("in chrome.braveSync.onLoadClient");
   LoadJsLibScript();
@@ -272,6 +277,10 @@ class InjectedObject {
         if (getBookmarkOrderCallback) {
           getBookmarkOrderCallback(arg1);
         }
+        break;
+      case "deleted-sync-user":
+        console.log('deleted-sync-user');
+        chrome.braveSync.deletedSyncUser();
         break;
       default:
         console.log('background.js TAGAB InjectedObject.handleMessage unknown message', message, arg1, arg2, arg3, arg4);
