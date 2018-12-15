@@ -16,11 +16,13 @@
 #include "base/observer_list.h"
 #include "base/memory/weak_ptr.h"
 #include "bat/ledger/ledger_client.h"
+#include "brave/components/services/bat_ledger/public/interfaces/bat_ledger.mojom.h"
 #include "brave/components/brave_rewards/browser/rewards_service.h"
 #include "chrome/browser/bitmap_fetcher/bitmap_fetcher_service.h"
 #include "content/public/browser/browser_thread.h"
 #include "extensions/buildflags/buildflags.h"
 #include "extensions/common/one_shot_event.h"
+#include "mojo/public/cpp/bindings/associated_binding.h"
 #include "net/url_request/url_fetcher_delegate.h"
 #include "brave/components/brave_rewards/browser/balance_report.h"
 #include "brave/components/brave_rewards/browser/content_site.h"
@@ -290,7 +292,12 @@ class RewardsServiceImpl : public RewardsService,
   void OnNotificationTimerFired();
 
   Profile* profile_;  // NOT OWNED
-  std::unique_ptr<ledger::Ledger> ledger_;
+  std::unique_ptr<ledger::Ledger> ledger_; // TODO: remove this
+  mojo::AssociatedBinding<bat_ledger::mojom::BatLedgerClient>
+    bat_ledger_client_binding_;
+  bat_ledger::mojom::BatLedgerAssociatedPtr bat_ledger_;
+  bat_ledger::mojom::BatLedgerServicePtr bat_ledger_service_;
+
 #if BUILDFLAG(ENABLE_EXTENSIONS)
   std::unique_ptr<ExtensionRewardsServiceObserver>
       extension_rewards_service_observer_;
