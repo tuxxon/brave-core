@@ -37,6 +37,7 @@
 #include "brave/components/brave_rewards/browser/rewards_service_observer.h"
 #include "brave/components/brave_rewards/browser/switches.h"
 #include "brave/components/brave_rewards/browser/wallet_properties.h"
+#include "brave/components/services/bat_ledger/public/cpp/ledger_client_mojo_proxy.h"
 #include "chrome/browser/bitmap_fetcher/bitmap_fetcher_service_factory.h"
 #include "chrome/browser/browser_process_impl.h"
 #include "chrome/browser/favicon/favicon_service_factory.h"
@@ -46,6 +47,7 @@
 #include "components/prefs/pref_service.h"
 #include "content/public/browser/browser_task_traits.h"
 #include "content/public/browser/url_data_source.h"
+#include "content/public/common/service_manager_connection.h"
 #include "content_site.h"
 #include "extensions/buildflags/buildflags.h"
 #include "net/base/escape.h"
@@ -53,6 +55,7 @@
 #include "net/base/url_util.h"
 #include "net/url_request/url_fetcher.h"
 #include "publisher_banner.h"
+#include "services/service_manager/public/cpp/connector.h"
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/gfx/image/image.h"
 #include "url/gurl.h"
@@ -260,7 +263,8 @@ const base::FilePath::StringType kPublishers_list("publishers_list");
 
 RewardsServiceImpl::RewardsServiceImpl(Profile* profile)
     : profile_(profile),
-      ledger_(ledger::Ledger::CreateInstance(this)),
+      ledger_(ledger::Ledger::CreateInstance(this)), // TODO: remove this
+      bat_ledger_client_binding_(new bat_ledger::LedgerClientMojoProxy(this)),
 #if BUILDFLAG(ENABLE_EXTENSIONS)
       extension_rewards_service_observer_(
           std::make_unique<ExtensionRewardsServiceObserver>(profile_)),
@@ -308,13 +312,32 @@ RewardsServiceImpl::~RewardsServiceImpl() {
   StopNotificationTimers();
 }
 
+void ConnectionClosed() {
+  LOG(ERROR) << __FUNCTION__;
+  // TODO
+}
+
 void RewardsServiceImpl::Init() {
   AddObserver(notification_service_.get());
 #if BUILDFLAG(ENABLE_EXTENSIONS)
   AddObserver(extension_rewards_service_observer_.get());
   private_observers_.AddObserver(private_observer_.get());
 #endif
-  ledger_->Initialize();
+
+  bat_ledger::mojom::BatLedgerClientAssociatedPtrInfo client_ptr_info;
+  bat_ledger_client_binding_.Bind(mojo::MakeRequest(&client_ptr_info));
+
+  content::ServiceManagerConnection* connection =
+    content::ServiceManagerConnection::GetForProcess();
+  DCHECK(connection);
+
+  connection->GetConnector()->BindInterface(
+      bat_ledger::mojom::kServiceName, &bat_ledger_service_);
+  bat_ledger_service_.set_connection_error_handler(
+      base::Bind(&ConnectionClosed));
+
+  bat_ledger_service_->Create(std::move(client_ptr_info),
+      MakeRequest(&bat_ledger_));
 }
 
 void RewardsServiceImpl::MaybeShowBackupNotification() {
