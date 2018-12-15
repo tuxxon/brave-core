@@ -58,6 +58,14 @@ void LedgerClientMojoProxy::OnWalletInitialized(int32_t result) {
   ledger_client_->OnWalletInitialized(ToLedgerResult(result));
 }
 
+void LedgerClientMojoProxy::OnWalletProperties(int32_t result,
+    const std::string& info) {
+  auto wallet_info = std::make_unique<ledger::WalletInfo>();
+  wallet_info->loadFromJson(info);
+  ledger_client_->OnWalletProperties(ToLedgerResult(result),
+      std::move(wallet_info));
+}
+
 void LedgerClientMojoProxy::LoadPublisherState(
     LoadPublisherStateCallback callback) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
@@ -163,6 +171,14 @@ void LedgerClientMojoProxy::SetTimer(uint64_t time_offset,
 void LedgerClientMojoProxy::OnExcludedSitesChanged(
     const std::string& publisher_id) {
   ledger_client_->OnExcludedSitesChanged(publisher_id);
+}
+
+void LedgerClientMojoProxy::OnPublisherActivity(int32_t result,
+    const std::string& info, uint64_t window_id) {
+  auto publisher_info = std::make_unique<ledger::PublisherInfo>();
+  publisher_info->loadFromJson(info);
+  ledger_client_->OnPublisherActivity(ToLedgerResult(result),
+      std::move(publisher_info), window_id);
 }
 
 void LedgerClientMojoProxy::SaveContributionInfo(const std::string& probi,

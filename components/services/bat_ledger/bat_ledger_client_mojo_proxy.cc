@@ -52,7 +52,8 @@ void BatLedgerClientMojoProxy::OnWalletInitialized(ledger::Result result) {
 
 void BatLedgerClientMojoProxy::OnWalletProperties(ledger::Result result,
     std::unique_ptr<ledger::WalletInfo> info) {
-  // TODO
+  bat_ledger_client_->OnWalletProperties(ToMojomResult(result),
+      info->ToJson());
 }
 
 void BatLedgerClientMojoProxy::OnGrant(ledger::Result result,
@@ -181,6 +182,13 @@ void BatLedgerClientMojoProxy::SetTimer(uint64_t time_offset,
 void BatLedgerClientMojoProxy::OnExcludedSitesChanged(
     const std::string& publisher_id) {
   bat_ledger_client_->OnExcludedSitesChanged(publisher_id);
+}
+
+void BatLedgerClientMojoProxy::OnPublisherActivity(ledger::Result result,
+    std::unique_ptr<ledger::PublisherInfo> info,
+    uint64_t windowId) {
+  bat_ledger_client_->OnPublisherActivity(ToMojomResult(result),
+      info->ToJson(), windowId);
 }
 
 void BatLedgerClientMojoProxy::SaveContributionInfo(const std::string& probi,
