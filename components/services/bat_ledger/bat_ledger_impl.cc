@@ -8,7 +8,7 @@
 
 namespace bat_ledger {
 
-namespace {
+namespace { // TODO, move into a util class
 
 ledger::PUBLISHER_EXCLUDE ToLedgerPublisherExclude(int32_t exclude) {
   return (ledger::PUBLISHER_EXCLUDE)exclude;
