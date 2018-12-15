@@ -138,15 +138,13 @@ interface BatLedgerClient {
       string favicon_url);
   GetRecurringDonations() => (array<string> publisher_info_list,
       uint32 next_record);
-  // TODO: Log
 
   LoadNicewareList() => (int32 result, string data);
   OnRemoveRecurring(string publisher_key) => (int32 result);
 
-  // TODO: handle LedgerURLLoader
-  // LoadURL(string url, array<string> headers, string content,
-  //    string content_type, int32 method) => (uint64 request_id, string url,
-  //      int32 response_code, string response, map<string, string> headers);
+  LoadURL(string url, array<string> headers, string content,
+      string content_type, int32 method) => (bool success, string response,
+        map<string, string> headers);
 
   [Sync]
   SetTimer(uint64 time_offset) => (uint32 timer_id);

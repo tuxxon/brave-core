@@ -4,6 +4,8 @@
 
 #include "brave/components/services/bat_ledger/public/cpp/ledger_client_mojo_proxy.h"
 
+#include "mojo/public/cpp/bindings/map.h"
+
 using namespace std::placeholders;
 
 namespace bat_ledger {
@@ -26,6 +28,10 @@ ledger::Grant ToLedgerGrant(const std::string& grant_json) {
   ledger::Grant grant;
   grant.loadFromJson(grant_json);
   return grant;
+}
+
+ledger::URL_METHOD ToLedgerURLMethod(int32_t method) {
+  return (ledger::URL_METHOD)method;
 }
 
 } // anonymous namespace
@@ -292,7 +298,6 @@ void LedgerClientMojoProxy::FetchFavIcon(const std::string& url,
       AsWeakPtr(), std::move(callback));
   ledger_client_->FetchFavIcon(url, favicon_key,
       std::bind(LedgerClientMojoProxy::OnFetchFavIcon, holder, _1, _2));
-
 }
 
 // static
@@ -390,6 +395,31 @@ void LedgerClientMojoProxy::SetContributionAutoInclude(
     const std::string& publisher_key, bool excluded, uint64_t window_id) {
   ledger_client_->SetContributionAutoInclude(
       publisher_key, excluded, window_id);
+}
+
+// static
+void LedgerClientMojoProxy::OnLoadURL(
+    CallbackHolder<LoadURLCallback>* holder,
+    bool success, const std::string& response,
+    const std::map<std::string, std::string>& headers) {
+  if (holder->is_valid())
+    std::move(holder->get()).Run(
+        success, response, mojo::MapToFlatMap(headers));
+  delete holder;
+}
+
+void LedgerClientMojoProxy::LoadURL(const std::string& url,
+    const std::vector<std::string>& headers,
+    const std::string& content,
+    const std::string& contentType,
+    int32_t method,
+    LoadURLCallback callback) {
+  // deleted in OnLoadURL
+  auto* holder = new CallbackHolder<LoadURLCallback>(
+      AsWeakPtr(), std::move(callback));
+  ledger_client_->LoadURL(url, headers, content, contentType,
+      ToLedgerURLMethod(method),
+      std::bind(LedgerClientMojoProxy::OnLoadURL, holder, _1, _2, _3));
 }
 
 } // namespace bat_ledger

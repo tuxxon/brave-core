@@ -81,6 +81,13 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
   void SetContributionAutoInclude(const std::string& publisher_key,
       bool excluded, uint64_t window_id) override;
 
+  void LoadURL(const std::string& url,
+    const std::vector<std::string>& headers,
+    const std::string& content,
+    const std::string& contentType,
+    int32_t method,
+    LoadURLCallback callback) override;
+
   // ledger::LedgerCallbackHandler
   void OnLedgerStateLoaded(ledger::Result result,
       const std::string& data) override;
@@ -147,6 +154,11 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
   static void OnRecurringRemoved(
       CallbackHolder<OnRemoveRecurringCallback>* holder,
       int32_t result);
+
+  static void OnLoadURL(
+      CallbackHolder<LoadURLCallback>* holder,
+      bool success, const std::string& response,
+      const std::map<std::string, std::string>& headers);
 
   ledger::LedgerClient* ledger_client_;
   LoadLedgerStateCallback load_ledger_state_callback_;
