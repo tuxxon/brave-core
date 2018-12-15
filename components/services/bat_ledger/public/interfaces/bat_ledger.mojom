@@ -15,4 +15,5 @@ interface BatLedger {
 };
 
 interface BatLedgerClient {
+  LoadLedgerState() => (int32 result, string data);
 };
