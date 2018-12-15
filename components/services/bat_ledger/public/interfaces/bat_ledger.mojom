@@ -16,4 +16,9 @@ interface BatLedger {
 
 interface BatLedgerClient {
   LoadLedgerState() => (int32 result, string data);
+  LoadPublisherState() => (int32 result, string data);
+  LoadPublisherList() => (int32 result, string data);
+  SaveLedgerState(string ledger_state) => (int32 result);
+  SavePublisherState(string publisher_state) => (int32 result);
+  SavePublishersList(string publishers_list) => (int32 result);
 };

@@ -20,14 +20,34 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
 
   // bat_ledger::mojom::BatLedgerClient
   void LoadLedgerState(LoadLedgerStateCallback callback) override;
+  void LoadPublisherState(LoadPublisherStateCallback callback) override;
+  void LoadPublisherList(LoadPublisherListCallback callback) override;
+  void SaveLedgerState(const std::string& ledger_state,
+      SaveLedgerStateCallback callback) override;
+  void SavePublisherState(const std::string& publisher_state,
+      SavePublisherStateCallback callback) override;
+  void SavePublishersList(const std::string& publishers_list,
+      SavePublishersListCallback callback) override;
 
   // ledger::LedgerCallbackHandler
   void OnLedgerStateLoaded(ledger::Result result,
       const std::string& data) override;
+  void OnPublisherStateLoaded(ledger::Result result,
+      const std::string& data) override;
+  void OnPublisherListLoaded(ledger::Result result,
+      const std::string& data) override;
+  void OnLedgerStateSaved(ledger::Result result) override;
+  void OnPublisherStateSaved(ledger::Result result) override;
+  void OnPublishersListSaved(ledger::Result result) override;
 
  private:
   ledger::LedgerClient* ledger_client_;
   LoadLedgerStateCallback load_ledger_state_callback_;
+  LoadPublisherStateCallback load_publisher_state_callback_;
+  LoadPublisherListCallback load_publisher_list_callback_;
+  SaveLedgerStateCallback save_ledger_state_callback_;
+  SavePublisherStateCallback save_publisher_state_callback_;
+  SavePublishersListCallback save_publishers_list_callback_;
 
   DISALLOW_COPY_AND_ASSIGN(LedgerClientMojoProxy);
 };
