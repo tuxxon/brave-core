@@ -830,11 +830,11 @@ void RewardsServiceImpl::OnPublisherInfoLoaded(
     const ledger::PublisherInfoList list) {
   if (list.size() == 0) {
     callback(ledger::Result::NOT_FOUND,
-        std::unique_ptr<ledger::PublisherInfo>());
+        std::make_unique<ledger::PublisherInfo>());
     return;
   } else if (list.size() > 1) {
     callback(ledger::Result::TOO_MANY_RESULTS,
-        std::unique_ptr<ledger::PublisherInfo>());
+        std::make_unique<ledger::PublisherInfo>());
     return;
   }
 
