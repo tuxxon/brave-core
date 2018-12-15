@@ -19,6 +19,14 @@ interface BatLedger {
   [Sync]
   GetPublisherMinVisitTime() => (uint64 min_visit_time);
   [Sync]
+  GetPublisherMinVisits() => (uint32 min_visits);
+  [Sync]
+  GetPublisherAllowNonVerified() => (bool allowed);
+  [Sync]
+  GetPublisherAllowVideos() => (bool allowed);
+  [Sync]
+  GetAutoContribute() => (bool auto_contribute);
+  [Sync]
   GetReconcileStamp() => (uint64 reconcile_stamp);
 
   GetPublisherInfoList(uint32 start, uint32 limit, string filter) => (
