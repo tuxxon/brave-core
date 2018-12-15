@@ -4,6 +4,9 @@
 
 #include "brave/components/services/bat_ledger/bat_ledger_client_mojo_proxy.h"
 
+#include "base/logging.h"
+#include "mojo/public/cpp/bindings/map.h"
+
 namespace bat_ledger {
 
 namespace {
@@ -19,6 +22,40 @@ ledger::Result ToLedgerResult(int32_t result) {
 int32_t ToMojomPublisherCategory(ledger::PUBLISHER_CATEGORY category) {
   return (int32_t)category;
 }
+
+int32_t ToMojomMethod(ledger::URL_METHOD method) {
+  return (int32_t)method;
+}
+
+class LogStreamImpl : public ledger::LogStream {
+ public:
+  LogStreamImpl(const char* file,
+                int line,
+                const ledger::LogLevel log_level) {
+    switch(log_level) {
+      case ledger::LogLevel::LOG_INFO:
+        log_message_ = std::make_unique<logging::LogMessage>(file, line, logging::LOG_INFO);
+        break;
+      case ledger::LogLevel::LOG_WARNING:
+        log_message_ = std::make_unique<logging::LogMessage>(file, line, logging::LOG_WARNING);
+        break;
+      case ledger::LogLevel::LOG_ERROR:
+        log_message_ = std::make_unique<logging::LogMessage>(file, line, logging::LOG_ERROR);
+        break;
+      default:
+        log_message_ = std::make_unique<logging::LogMessage>(file, line, logging::LOG_VERBOSE);
+        break;
+    }
+  }
+
+  std::ostream& stream() override {
+    return log_message_->stream();
+  }
+
+ private:
+  std::unique_ptr<logging::LogMessage> log_message_;
+  DISALLOW_COPY_AND_ASSIGN(LogStreamImpl);
+};
 
 } // anonymous namespace
 
@@ -36,6 +73,12 @@ std::string BatLedgerClientMojoProxy::GenerateGUID() const {
   return guid;
 }
 
+void OnLoadURL(const ledger::LoadURLCallback& callback,
+    bool success, const std::string& response,
+    const base::flat_map<std::string, std::string>& headers) {
+  callback(success, response, mojo::FlatMapToMap(headers));
+}
+
 void BatLedgerClientMojoProxy::LoadURL(
     const std::string& url,
     const std::vector<std::string>& headers,
@@ -43,7 +86,8 @@ void BatLedgerClientMojoProxy::LoadURL(
     const std::string& contentType,
     const ledger::URL_METHOD& method,
     ledger::LoadURLCallback callback) {
-  // TODO
+  bat_ledger_client_->LoadURL(url, headers, content, contentType,
+      ToMojomMethod(method), base::BindOnce(&OnLoadURL, std::move(callback)));
 }
 
 void BatLedgerClientMojoProxy::OnWalletInitialized(ledger::Result result) {
@@ -87,7 +131,8 @@ void BatLedgerClientMojoProxy::OnReconcileComplete(ledger::Result result,
 
 std::unique_ptr<ledger::LogStream> BatLedgerClientMojoProxy::Log(
     const char* file, int line, ledger::LogLevel level) const {
-  return nullptr;
+  // There's no need to proxy this
+  return std::make_unique<LogStreamImpl>(file, line, level);
 }
 
 void BatLedgerClientMojoProxy::OnGrantFinish(ledger::Result result,
