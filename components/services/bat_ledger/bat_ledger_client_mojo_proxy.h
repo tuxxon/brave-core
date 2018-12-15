@@ -94,7 +94,7 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient,
   std::string URIEncode(const std::string& value) override;
 
   void SetContributionAutoInclude(
-    std::string publisher_key, bool excluded, uint64_t windowId) override {}
+    const std::string& publisher_key, bool excluded, uint64_t windowId) override {}
 
  private:
   void LoadNicewareList(ledger::GetNicewareListCallback callback) override {}

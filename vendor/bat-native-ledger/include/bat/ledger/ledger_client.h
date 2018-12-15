@@ -138,7 +138,7 @@ class LEDGER_EXPORT LedgerClient {
       ledger::LoadURLCallback callback) = 0;
   // RunIOTask is a temporary workarounds for some IO tasks
   virtual void RunIOTask(std::unique_ptr<LedgerTaskRunner> task) = 0;
-  virtual void SetContributionAutoInclude(std::string publisher_key,
+  virtual void SetContributionAutoInclude(const std::string& publisher_key,
                                           bool excluded,
                                           uint64_t windowId) = 0;
 
