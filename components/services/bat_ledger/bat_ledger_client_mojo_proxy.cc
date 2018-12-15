@@ -61,4 +61,71 @@ void BatLedgerClientMojoProxy::LoadLedgerState(
         base::Unretained(handler)));
 }
 
+void BatLedgerClientMojoProxy::OnLoadPublisherState(
+    ledger::LedgerCallbackHandler* handler,
+    int32_t result, const std::string& data) {
+  handler->OnPublisherStateLoaded(ToLedgerResult(result), data);
+}
+
+void BatLedgerClientMojoProxy::LoadPublisherState(
+    ledger::LedgerCallbackHandler* handler) {
+  bat_ledger_client_->LoadPublisherState(
+      base::BindOnce(&BatLedgerClientMojoProxy::OnLoadPublisherState,
+        AsWeakPtr(), base::Unretained(handler)));
+}
+
+void BatLedgerClientMojoProxy::OnLoadPublisherList(
+    ledger::LedgerCallbackHandler* handler,
+    int32_t result, const std::string& data) {
+  handler->OnPublisherListLoaded(ToLedgerResult(result), data);
+}
+
+void BatLedgerClientMojoProxy::LoadPublisherList(
+    ledger::LedgerCallbackHandler* handler) {
+  bat_ledger_client_->LoadPublisherList(
+      base::BindOnce(&BatLedgerClientMojoProxy::OnLoadPublisherList,
+        AsWeakPtr(), base::Unretained(handler)));
+}
+
+void BatLedgerClientMojoProxy::OnSaveLedgerState(
+    ledger::LedgerCallbackHandler* handler,
+    int32_t result) {
+  handler->OnLedgerStateSaved(ToLedgerResult(result));
+}
+
+void BatLedgerClientMojoProxy::SaveLedgerState(
+    const std::string& ledger_state, ledger::LedgerCallbackHandler* handler) {
+  bat_ledger_client_->SaveLedgerState(ledger_state,
+      base::BindOnce(&BatLedgerClientMojoProxy::OnSaveLedgerState,
+        AsWeakPtr(), base::Unretained(handler)));
+}
+
+void BatLedgerClientMojoProxy::OnSavePublisherState(
+    ledger::LedgerCallbackHandler* handler,
+    int32_t result) {
+  handler->OnPublisherStateSaved(ToLedgerResult(result));
+}
+
+void BatLedgerClientMojoProxy::SavePublisherState(
+    const std::string& publisher_state,
+    ledger::LedgerCallbackHandler* handler) {
+  bat_ledger_client_->SavePublisherState(publisher_state,
+      base::BindOnce(&BatLedgerClientMojoProxy::OnSavePublisherState,
+        AsWeakPtr(), base::Unretained(handler)));
+}
+
+void BatLedgerClientMojoProxy::OnSavePublishersList(
+    ledger::LedgerCallbackHandler* handler,
+    int32_t result) {
+  handler->OnPublishersListSaved(ToLedgerResult(result));
+}
+
+void BatLedgerClientMojoProxy::SavePublishersList(
+    const std::string& publishers_list,
+    ledger::LedgerCallbackHandler* handler) {
+  bat_ledger_client_->SavePublishersList(publishers_list,
+      base::BindOnce(&BatLedgerClientMojoProxy::OnSavePublishersList,
+        AsWeakPtr(), base::Unretained(handler)));
+}
+
 } // namespace bat_ledger

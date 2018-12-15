@@ -38,12 +38,12 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient,
                            const std::string& probi) override {}
   void OnGrantFinish(ledger::Result result,
                      const ledger::Grant& grant) override {}
-  void LoadPublisherState(ledger::LedgerCallbackHandler* handler) override {}
   void LoadLedgerState(ledger::LedgerCallbackHandler* handler) override;
+  void LoadPublisherState(ledger::LedgerCallbackHandler* handler) override;
   void SaveLedgerState(const std::string& ledger_state,
-                       ledger::LedgerCallbackHandler* handler) override {}
+                       ledger::LedgerCallbackHandler* handler) override;
   void SavePublisherState(const std::string& publisher_state,
-                          ledger::LedgerCallbackHandler* handler) override {}
+                          ledger::LedgerCallbackHandler* handler) override;
 
   void SavePublisherInfo(std::unique_ptr<ledger::PublisherInfo> publisher_info,
                          ledger::PublisherInfoCallback callback) override {}
@@ -55,9 +55,9 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient,
       ledger::PublisherInfoFilter filter,
       ledger::PublisherInfoListCallback callback) override {}
   void SavePublishersList(const std::string& publishers_list,
-                          ledger::LedgerCallbackHandler* handler) override {}
+                          ledger::LedgerCallbackHandler* handler) override;
   void SetTimer(uint64_t time_offset, uint32_t& timer_id) override {}
-  void LoadPublisherList(ledger::LedgerCallbackHandler* handler) override {}
+  void LoadPublisherList(ledger::LedgerCallbackHandler* handler) override;
 
   void LoadURL(const std::string& url,
       const std::vector<std::string>& headers,
@@ -104,6 +104,16 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient,
 
   void OnLoadLedgerState(ledger::LedgerCallbackHandler* handler,
       int32_t result, const std::string& data);
+  void OnLoadPublisherState(ledger::LedgerCallbackHandler* handler,
+      int32_t result, const std::string& data);
+  void OnLoadPublisherList(ledger::LedgerCallbackHandler* handler,
+      int32_t result, const std::string& data);
+  void OnSaveLedgerState(ledger::LedgerCallbackHandler* handler,
+      int32_t result);
+  void OnSavePublisherState(ledger::LedgerCallbackHandler* handler,
+      int32_t result);
+  void OnSavePublishersList(ledger::LedgerCallbackHandler* handler,
+      int32_t result);
 
   DISALLOW_COPY_AND_ASSIGN(BatLedgerClientMojoProxy);
 };
