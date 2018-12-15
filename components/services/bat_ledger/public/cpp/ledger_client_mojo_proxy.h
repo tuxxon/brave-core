@@ -19,7 +19,9 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
   ~LedgerClientMojoProxy() override;
 
   // bat_ledger::mojom::BatLedgerClient
+  void GenerateGUID(GenerateGUIDCallback callback) override;
   void LoadLedgerState(LoadLedgerStateCallback callback) override;
+  void OnWalletInitialized(int32_t result) override;
   void LoadPublisherState(LoadPublisherStateCallback callback) override;
   void LoadPublisherList(LoadPublisherListCallback callback) override;
   void SaveLedgerState(const std::string& ledger_state,

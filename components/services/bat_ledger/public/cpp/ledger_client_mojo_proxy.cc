@@ -12,6 +12,10 @@ int32_t ToMojomResult(ledger::Result result) {
   return (int32_t)result;
 }
 
+ledger::Result ToLedgerResult(int32_t result) {
+  return (ledger::Result)result;
+}
+
 } // anonymous namespace
 
 LedgerClientMojoProxy::LedgerClientMojoProxy(
@@ -32,6 +36,16 @@ void LedgerClientMojoProxy::OnLedgerStateLoaded(ledger::Result result,
                                                 const std::string& data) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
   std::move(load_ledger_state_callback_).Run(ToMojomResult(result), data);
+}
+
+void LedgerClientMojoProxy::GenerateGUID(GenerateGUIDCallback callback) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
+  std::move(callback).Run(ledger_client_->GenerateGUID());
+}
+
+void LedgerClientMojoProxy::OnWalletInitialized(int32_t result) {
+  LOG(ERROR) << __PRETTY_FUNCTION__;
+  ledger_client_->OnWalletInitialized(ToLedgerResult(result));
 }
 
 void LedgerClientMojoProxy::LoadPublisherState(

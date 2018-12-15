@@ -21,6 +21,68 @@ class BatLedgerImpl : public mojom::BatLedger {
     ~BatLedgerImpl() override;
 
     // bat_ledger::mojom::BatLedger
+    void Initialize() override;
+    void CreateWallet() override;
+    void FetchWalletProperties() override;
+
+    void GetPublisherMinVisitTime(
+        GetPublisherMinVisitTimeCallback callback) override;
+    void GetReconcileStamp(GetReconcileStampCallback callback) override;
+
+    void OnUnload(uint32_t tab_id, uint64_t current_time) override;
+    void OnShow(uint32_t tab_id, uint64_t current_time) override;
+    void OnHide(uint32_t tab_id, uint64_t current_time) override;
+    void OnForeground(uint32_t tab_id, uint64_t current_time) override;
+    void OnBackground(uint32_t tab_id, uint64_t current_time) override;
+    void OnMediaStart(uint32_t tab_id, uint64_t current_time) override;
+    void OnMediaStop(uint32_t tab_id, uint64_t current_time) override;
+
+    void SetPublisherExclude(const std::string& publisher_key,
+        int32_t exclude) override;
+    void RestorePublishers() override;
+
+    void SetBalanceReportItem(
+        int32_t month, int32_t year, int32_t type,
+        const std::string& probi,
+        SetBalanceReportItemCallback callback) override;
+    void OnReconcileCompleteSuccess(const std::string& viewing_id,
+        int32_t category, const std::string& probi, int32_t month,
+        int32_t year, uint32_t data,
+        OnReconcileCompleteSuccessCallback callback) override;
+
+    void FetchGrant(
+        const std::string& lang, const std::string& payment_id) override;
+    void GetGrantCaptcha() override;
+    void GetWalletPassphrase(GetWalletPassphraseCallback callback) override;
+    void GetNumExcludedSites(GetNumExcludedSitesCallback callback) override;
+    void RecoverWallet(const std::string& passPhrase) override;
+    void SolveGrantCaptcha(const std::string& solution) override;
+
+    void GetBATAddress(GetBATAddressCallback callback) override;
+    void GetBTCAddress(GetBTCAddressCallback callback) override;
+    void GetETHAddress(GetETHAddressCallback callback) override;
+    void GetLTCAddress(GetLTCAddressCallback callback) override;
+
+    void SetRewardsMainEnabled(bool enabled) override;
+    void SetPublisherMinVisitTime(uint64_t duration_in_seconds) override;
+    void SetPublisherMinVisits(uint32_t visits) override;
+    void SetPublisherAllowNonVerified(bool allow) override;
+    void SetPublisherAllowVideos(bool allow) override;
+    void SetUserChangedContribution() override;
+    void SetContributionAmount(double amount) override;
+    void SetAutoContribute(bool enabled) override;
+
+    void OnTimer(uint32_t timer_id, OnTimerCallback callback) override;
+
+    void IsWalletCreated(IsWalletCreatedCallback callback) override;
+
+    void GetContributionAmount(
+      GetContributionAmountCallback callback) override;
+
+    void RemoveRecurring(const std::string& publisher_key) override;
+    void SetPublisherPanelExclude(const std::string& publisher_key,
+        int32_t exclude, uint64_t window_id) override;
+
   private:
     std::unique_ptr<BatLedgerClientMojoProxy> bat_ledger_client_mojo_proxy_;
     std::unique_ptr<ledger::Ledger> ledger_;
