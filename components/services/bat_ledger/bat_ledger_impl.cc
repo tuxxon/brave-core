@@ -8,6 +8,8 @@
 #include "brave/components/services/bat_ledger/bat_ledger_client_mojo_proxy.h"
 #include "mojo/public/cpp/bindings/map.h"
 
+using namespace std::placeholders;
+
 namespace bat_ledger {
 
 namespace { // TODO, move into a util class
@@ -250,6 +252,51 @@ void BatLedgerImpl::GetPublisherActivityFromUrl(uint64_t window_id,
   ledger::VisitData visitData;
   if (visitData.loadFromJson(visit_data))
     ledger_->GetPublisherActivityFromUrl(window_id, visitData);
+}
+
+// static
+void BatLedgerImpl::OnGetPublisherBanner(
+    CallbackHolder<GetPublisherBannerCallback>* holder,
+    std::unique_ptr<ledger::PublisherBanner> banner) {
+  if (holder->is_valid())
+    std::move(holder->get()).Run(banner->ToJson());
+  delete holder;
+}
+
+void BatLedgerImpl::GetPublisherBanner(const std::string& publisher_id,
+    GetPublisherBannerCallback callback) {
+  // delete in OnGetPublisherBanner
+  auto* holder = new CallbackHolder<GetPublisherBannerCallback>(
+      AsWeakPtr(), std::move(callback));
+  ledger_->GetPublisherBanner(publisher_id,
+      std::bind(BatLedgerImpl::OnGetPublisherBanner, holder, _1));
+}
+
+// static
+void BatLedgerImpl::OnGetPublisherInfoList(
+    CallbackHolder<GetPublisherInfoListCallback>* holder,
+    const ledger::PublisherInfoList& list,
+    uint32_t next_record) {
+  std::vector<std::string> publisher_info_list;
+  for (const auto& info : list) {
+    publisher_info_list.push_back(info.ToJson());
+  }
+
+  if (holder->is_valid())
+    std::move(holder->get()).Run(publisher_info_list, next_record);
+  delete holder;
+}
+
+void BatLedgerImpl::GetPublisherInfoList(uint32_t start, uint32_t limit,
+    const std::string& filter,
+    GetPublisherInfoListCallback callback) {
+  // delete in OnGetPublisherInfoList
+  auto* holder = new CallbackHolder<GetPublisherInfoListCallback>(
+      AsWeakPtr(), std::move(callback));
+  ledger::PublisherInfoFilter publisher_info_filter;
+  publisher_info_filter.loadFromJson(filter);
+  ledger_->GetPublisherInfoList(start, limit, publisher_info_filter,
+      std::bind(BatLedgerImpl::OnGetPublisherInfoList, holder, _1, _2));
 }
 
 void BatLedgerImpl::GetContributionAmount(

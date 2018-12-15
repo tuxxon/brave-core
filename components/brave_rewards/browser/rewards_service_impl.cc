@@ -400,14 +400,29 @@ void RewardsServiceImpl::GetCurrentContributeList(
   filter.percent = 1;
   filter.non_verified = ledger_->GetPublisherAllowNonVerified();
 
-  ledger_->GetPublisherInfoList(
-      start,
-      limit,
-      filter,
-      std::bind(&GetContentSiteListInternal,
+  bat_ledger_->GetPublisherInfoList(start, limit,
+      filter.ToJson(),
+      base::BindOnce(&RewardsServiceImpl::OnGetPublisherInfoList, AsWeakPtr(),
                 start,
                 limit,
-                callback, _1, _2));
+                callback));
+}
+
+void RewardsServiceImpl::OnGetPublisherInfoList(
+    uint32_t start, uint32_t limit,
+    const GetCurrentContributeListCallback& callback,
+    const std::vector<std::string>& publisher_info_list,
+    uint32_t next_record) {
+  ledger::PublisherInfoList list;
+
+  for (const auto& i : publisher_info_list) {
+    ledger::PublisherInfo info;
+    info.loadFromJson(i);
+    list.push_back(info);
+  }
+
+  GetContentSiteListInternal(start, limit, callback, std::move(list),
+      next_record);
 }
 
 void RewardsServiceImpl::OnLoad(SessionID tab_id, const GURL& url) {
@@ -597,7 +612,7 @@ void RewardsServiceImpl::Shutdown() {
   }
   fetchers_.clear();
 
-  ledger_.reset();
+  bat_ledger_.reset();
   RewardsService::Shutdown();
 }
 
@@ -1430,8 +1445,16 @@ void RewardsServiceImpl::OnSetOnDemandFaviconComplete(const std::string& favicon
 }
 
 void RewardsServiceImpl::GetPublisherBanner(const std::string& publisher_id) {
-  ledger_->GetPublisherBanner(publisher_id,
-      std::bind(&RewardsServiceImpl::OnPublisherBanner, this, _1));
+  bat_ledger_->GetPublisherBanner(publisher_id,
+      base::BindOnce(&RewardsServiceImpl::OnPublisherBannerMojoProxy,
+        AsWeakPtr()));
+}
+
+void RewardsServiceImpl::OnPublisherBannerMojoProxy(
+    const std::string& banner) {
+  auto publisher_banner = std::make_unique<ledger::PublisherBanner>();
+  publisher_banner->loadFromJson(banner);
+  OnPublisherBanner(std::move(publisher_banner));
 }
 
 void RewardsServiceImpl::OnPublisherBanner(std::unique_ptr<ledger::PublisherBanner> banner) {
