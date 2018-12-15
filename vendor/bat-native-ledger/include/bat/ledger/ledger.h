@@ -35,6 +35,9 @@ LEDGER_EXPORT struct VisitData {
   VisitData(const VisitData& data);
   ~VisitData();
 
+  const std::string ToJson() const;
+  bool loadFromJson(const std::string& json);
+
   std::string tld;
   std::string domain;
   std::string path;
