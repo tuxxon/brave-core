@@ -8,8 +8,16 @@ namespace bat_ledger {
 
 namespace {
 
+int32_t ToMojomResult(ledger::Result result) {
+  return (int32_t)result;
+}
+
 ledger::Result ToLedgerResult(int32_t result) {
   return (ledger::Result)result;
+}
+
+int32_t ToMojomPublisherCategory(ledger::PUBLISHER_CATEGORY category) {
+  return (int32_t)category;
 }
 
 } // anonymous namespace
@@ -23,7 +31,9 @@ BatLedgerClientMojoProxy::~BatLedgerClientMojoProxy() {
 }
 
 std::string BatLedgerClientMojoProxy::GenerateGUID() const {
-  return "";
+  std::string guid;
+  bat_ledger_client_->GenerateGUID(&guid);
+  return guid;
 }
 
 void BatLedgerClientMojoProxy::LoadURL(
@@ -33,16 +43,25 @@ void BatLedgerClientMojoProxy::LoadURL(
     const std::string& contentType,
     const ledger::URL_METHOD& method,
     ledger::LoadURLCallback callback) {
+  // TODO
 }
 
-std::string BatLedgerClientMojoProxy::URIEncode(const std::string& value) {
-  return "";
+void BatLedgerClientMojoProxy::OnWalletInitialized(ledger::Result result) {
+  bat_ledger_client_->OnWalletInitialized(ToMojomResult(result));
 }
 
-void BatLedgerClientMojoProxy::OnExcludedSitesChanged(const std::string& publisher_id) {
-//  bat_ledger_client_->OnExcludedSitesChanged();
+void BatLedgerClientMojoProxy::OnGrantCaptcha(const std::string& image,
+    const std::string& hint) {
+  bat_ledger_client_->OnGrantCaptcha(image, hint);
 }
 
+void BatLedgerClientMojoProxy::OnReconcileComplete(ledger::Result result,
+    const std::string& viewing_id,
+    ledger::PUBLISHER_CATEGORY category,
+    const std::string& probi) {
+  bat_ledger_client_->OnReconcileComplete(ToMojomResult(result), viewing_id,
+      ToMojomPublisherCategory(category), probi);
+}
 
 std::unique_ptr<ledger::LogStream> BatLedgerClientMojoProxy::Log(
     const char* file, int line, ledger::LogLevel level) const {
@@ -126,6 +145,56 @@ void BatLedgerClientMojoProxy::SavePublishersList(
   bat_ledger_client_->SavePublishersList(publishers_list,
       base::BindOnce(&BatLedgerClientMojoProxy::OnSavePublishersList,
         AsWeakPtr(), base::Unretained(handler)));
+}
+
+void BatLedgerClientMojoProxy::SetTimer(uint64_t time_offset,
+    uint32_t& timer_id) {
+  bat_ledger_client_->SetTimer(time_offset, &timer_id); // sync
+}
+
+void BatLedgerClientMojoProxy::OnExcludedSitesChanged(
+    const std::string& publisher_id) {
+  bat_ledger_client_->OnExcludedSitesChanged(publisher_id);
+}
+
+void BatLedgerClientMojoProxy::SaveContributionInfo(const std::string& probi,
+    const int month,
+    const int year,
+    const uint32_t date,
+    const std::string& publisher_key,
+    const ledger::PUBLISHER_CATEGORY category) {
+  bat_ledger_client_->SaveContributionInfo(probi, month, year, date,
+      publisher_key, ToMojomPublisherCategory(category));
+}
+
+void BatLedgerClientMojoProxy::SaveMediaPublisherInfo(
+    const std::string& media_key, const std::string& publisher_id) {
+  bat_ledger_client_->SaveMediaPublisherInfo(media_key, publisher_id);
+}
+
+void BatLedgerClientMojoProxy::FetchWalletProperties() {
+  bat_ledger_client_->FetchWalletProperties();
+}
+
+void BatLedgerClientMojoProxy::FetchGrant(const std::string& lang,
+    const std::string& paymentId) {
+  bat_ledger_client_->FetchGrant(lang, paymentId);
+}
+
+void BatLedgerClientMojoProxy::GetGrantCaptcha() {
+  bat_ledger_client_->GetGrantCaptcha();
+}
+
+std::string BatLedgerClientMojoProxy::URIEncode(const std::string& value) {
+  std::string encoded_value;
+  bat_ledger_client_->URIEncode(value, &encoded_value);
+  return encoded_value;
+}
+
+void BatLedgerClientMojoProxy::SetContributionAutoInclude(
+  const std::string& publisher_key, bool excluded, uint64_t windowId) {
+  bat_ledger_client_->SetContributionAutoInclude(
+      publisher_key, excluded, windowId);
 }
 
 } // namespace bat_ledger

@@ -6,7 +6,7 @@
 
 namespace bat_ledger {
 
-namespace {
+namespace { // TODO, move into a util class
 
 int32_t ToMojomResult(ledger::Result result) {
   return (int32_t)result;
@@ -14,6 +14,10 @@ int32_t ToMojomResult(ledger::Result result) {
 
 ledger::Result ToLedgerResult(int32_t result) {
   return (ledger::Result)result;
+}
+
+ledger::PUBLISHER_CATEGORY ToLedgerPublisherCategory(int32_t category) {
+  return (ledger::PUBLISHER_CATEGORY)category;
 }
 
 } // anonymous namespace
@@ -108,6 +112,67 @@ void LedgerClientMojoProxy::SavePublishersList(
 void LedgerClientMojoProxy::OnPublishersListSaved(ledger::Result result) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
   std::move(save_publishers_list_callback_).Run(ToMojomResult(result));
+}
+
+void LedgerClientMojoProxy::OnGrantCaptcha(const std::string& image,
+    const std::string& hint) {
+  ledger_client_->OnGrantCaptcha(image, hint);
+}
+
+void LedgerClientMojoProxy::OnReconcileComplete(int32_t result,
+    const std::string& viewing_id,
+    int32_t category,
+    const std::string& probi) {
+  ledger_client_->OnReconcileComplete(ToLedgerResult(result), viewing_id,
+      ToLedgerPublisherCategory(category), probi);
+}
+
+void LedgerClientMojoProxy::SetTimer(uint64_t time_offset,
+    SetTimerCallback callback) {
+  uint32_t timer_id;
+  ledger_client_->SetTimer(time_offset, timer_id);
+  std::move(callback).Run(timer_id);
+}
+
+void LedgerClientMojoProxy::OnExcludedSitesChanged(
+    const std::string& publisher_id) {
+  ledger_client_->OnExcludedSitesChanged(publisher_id);
+}
+
+void LedgerClientMojoProxy::SaveContributionInfo(const std::string& probi,
+    int32_t month, int32_t year, uint32_t date,
+    const std::string& publisher_key, int32_t category) {
+  ledger_client_->SaveContributionInfo(probi, month, year, date, publisher_key,
+      ToLedgerPublisherCategory(category));
+}
+
+void LedgerClientMojoProxy::SaveMediaPublisherInfo(
+    const std::string& media_key, const std::string& publisher_id) {
+  ledger_client_->SaveMediaPublisherInfo(media_key, publisher_id);
+}
+
+void LedgerClientMojoProxy::FetchWalletProperties() {
+  ledger_client_->FetchWalletProperties();
+}
+
+void LedgerClientMojoProxy::FetchGrant(const std::string& lang,
+    const std::string& payment_id) {
+  ledger_client_->FetchGrant(lang, payment_id);
+}
+
+void LedgerClientMojoProxy::GetGrantCaptcha() {
+  ledger_client_->GetGrantCaptcha();
+}
+
+void LedgerClientMojoProxy::URIEncode(const std::string& value,
+    URIEncodeCallback callback) {
+  std::move(callback).Run(ledger_client_->URIEncode(value));
+}
+
+void LedgerClientMojoProxy::SetContributionAutoInclude(
+    const std::string& publisher_key, bool excluded, uint64_t window_id) {
+  ledger_client_->SetContributionAutoInclude(
+      publisher_key, excluded, window_id);
 }
 
 } // namespace bat_ledger
