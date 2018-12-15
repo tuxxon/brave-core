@@ -265,7 +265,6 @@ const base::FilePath::StringType kPublishers_list("publishers_list");
 
 RewardsServiceImpl::RewardsServiceImpl(Profile* profile)
     : profile_(profile),
-      ledger_(ledger::Ledger::CreateInstance(this)), // TODO: remove this
       bat_ledger_client_binding_(new bat_ledger::LedgerClientMojoProxy(this)),
 #if BUILDFLAG(ENABLE_EXTENSIONS)
       extension_rewards_service_observer_(
@@ -1149,7 +1148,9 @@ void RewardsServiceImpl::SetRewardsMainEnabled(bool enabled) const {
 }
 
 uint64_t RewardsServiceImpl::GetPublisherMinVisitTime() const {
-  return ledger_->GetPublisherMinVisitTime();
+  uint64_t min_visit_time;
+  bat_ledger_->GetPublisherMinVisitTime(&min_visit_time);
+  return min_visit_time;
 }
 
 void RewardsServiceImpl::SetPublisherMinVisitTime(
@@ -1158,7 +1159,9 @@ void RewardsServiceImpl::SetPublisherMinVisitTime(
 }
 
 unsigned int RewardsServiceImpl::GetPublisherMinVisits() const {
-  return ledger_->GetPublisherMinVisits();
+  uint32_t min_visits;
+  bat_ledger_->GetPublisherMinVisits(&min_visits);
+  return min_visits;
 }
 
 void RewardsServiceImpl::SetPublisherMinVisits(unsigned int visits) const {
@@ -1166,7 +1169,9 @@ void RewardsServiceImpl::SetPublisherMinVisits(unsigned int visits) const {
 }
 
 bool RewardsServiceImpl::GetPublisherAllowNonVerified() const {
-  return ledger_->GetPublisherAllowNonVerified();
+  bool allowed;
+  bat_ledger_->GetPublisherAllowNonVerified(&allowed);
+  return allowed;
 }
 
 void RewardsServiceImpl::SetPublisherAllowNonVerified(bool allow) const {
@@ -1174,7 +1179,9 @@ void RewardsServiceImpl::SetPublisherAllowNonVerified(bool allow) const {
 }
 
 bool RewardsServiceImpl::GetPublisherAllowVideos() const {
-  return ledger_->GetPublisherAllowVideos();
+  bool allowed;
+  bat_ledger_->GetPublisherAllowVideos(&allowed);
+  return allowed;
 }
 
 void RewardsServiceImpl::SetPublisherAllowVideos(bool allow) const {
@@ -1194,7 +1201,9 @@ void RewardsServiceImpl::SetUserChangedContribution() const {
 }
 
 bool RewardsServiceImpl::GetAutoContribute() const {
-  return ledger_->GetAutoContribute();
+  bool auto_contribute;
+  bat_ledger_->GetAutoContribute(&auto_contribute);
+  return auto_contribute;
 }
 
 void RewardsServiceImpl::SetAutoContribute(bool enabled) const {

@@ -304,7 +304,6 @@ class RewardsServiceImpl : public RewardsService,
       uint32_t next_record);
 
   Profile* profile_;  // NOT OWNED
-  std::unique_ptr<ledger::Ledger> ledger_; // TODO: remove this
   mojo::AssociatedBinding<bat_ledger::mojom::BatLedgerClient>
     bat_ledger_client_binding_;
   bat_ledger::mojom::BatLedgerAssociatedPtr bat_ledger_;

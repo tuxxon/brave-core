@@ -29,6 +29,13 @@ class BatLedgerImpl : public mojom::BatLedger,
 
     void GetPublisherMinVisitTime(
         GetPublisherMinVisitTimeCallback callback) override;
+    void GetPublisherMinVisits(
+        GetPublisherMinVisitsCallback callback) override;
+    void GetPublisherAllowNonVerified(
+        GetPublisherAllowNonVerifiedCallback callback) override;
+    void GetPublisherAllowVideos(
+        GetPublisherAllowVideosCallback callback) override;
+    void GetAutoContribute(GetAutoContributeCallback callback) override;
     void GetReconcileStamp(GetReconcileStampCallback callback) override;
 
     void OnLoad(const std::string& visit_data, uint64_t current_time) override;

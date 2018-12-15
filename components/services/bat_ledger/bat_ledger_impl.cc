@@ -63,6 +63,26 @@ void BatLedgerImpl::GetPublisherMinVisitTime(
   std::move(callback).Run(ledger_->GetPublisherMinVisitTime());
 }
 
+void BatLedgerImpl::GetPublisherMinVisits(
+    GetPublisherMinVisitsCallback callback) {
+  std::move(callback).Run(ledger_->GetPublisherMinVisits());
+}
+
+void BatLedgerImpl::GetPublisherAllowNonVerified(
+    GetPublisherAllowNonVerifiedCallback callback) {
+  std::move(callback).Run(ledger_->GetPublisherAllowNonVerified());
+}
+
+void BatLedgerImpl::GetPublisherAllowVideos(
+    GetPublisherAllowVideosCallback callback) {
+  std::move(callback).Run(ledger_->GetPublisherAllowVideos());
+}
+
+void BatLedgerImpl::GetAutoContribute(
+    GetAutoContributeCallback callback) {
+  std::move(callback).Run(ledger_->GetAutoContribute());
+}
+
 void BatLedgerImpl::GetReconcileStamp(GetReconcileStampCallback callback) {
   std::move(callback).Run(ledger_->GetReconcileStamp());
 }
