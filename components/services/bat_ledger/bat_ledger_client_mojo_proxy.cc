@@ -50,9 +50,30 @@ void BatLedgerClientMojoProxy::OnWalletInitialized(ledger::Result result) {
   bat_ledger_client_->OnWalletInitialized(ToMojomResult(result));
 }
 
+void BatLedgerClientMojoProxy::OnWalletProperties(ledger::Result result,
+    std::unique_ptr<ledger::WalletInfo> info) {
+  // TODO
+}
+
+void BatLedgerClientMojoProxy::OnGrant(ledger::Result result,
+    const ledger::Grant& grant) {
+  bat_ledger_client_->OnGrant(ToMojomResult(result), grant.ToJson());
+}
+
 void BatLedgerClientMojoProxy::OnGrantCaptcha(const std::string& image,
     const std::string& hint) {
   bat_ledger_client_->OnGrantCaptcha(image, hint);
+}
+
+void BatLedgerClientMojoProxy::OnRecoverWallet(ledger::Result result,
+    double balance, const std::vector<ledger::Grant>& grants) {
+  std::vector<std::string> grant_jsons;
+  for (auto const& grant : grants) {
+    grant_jsons.push_back(grant.ToJson());
+  }
+
+  bat_ledger_client_->OnRecoverWallet(
+      ToMojomResult(result), balance, grant_jsons);
 }
 
 void BatLedgerClientMojoProxy::OnReconcileComplete(ledger::Result result,
@@ -66,6 +87,11 @@ void BatLedgerClientMojoProxy::OnReconcileComplete(ledger::Result result,
 std::unique_ptr<ledger::LogStream> BatLedgerClientMojoProxy::Log(
     const char* file, int line, ledger::LogLevel level) const {
   return nullptr;
+}
+
+void BatLedgerClientMojoProxy::OnGrantFinish(ledger::Result result,
+    const ledger::Grant& grant) {
+  bat_ledger_client_->OnGrantFinish(ToMojomResult(result), grant.ToJson());
 }
 
 void BatLedgerClientMojoProxy::OnLoadLedgerState(ledger::LedgerCallbackHandler* handler,

@@ -26,18 +26,18 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient,
   std::string GenerateGUID() const override;
   void OnWalletInitialized(ledger::Result result) override;
   void OnWalletProperties(ledger::Result result,
-                          std::unique_ptr<ledger::WalletInfo> info) override {}
-  void OnGrant(ledger::Result result, const ledger::Grant& grant) override {}
+                          std::unique_ptr<ledger::WalletInfo> info) override;
+  void OnGrant(ledger::Result result, const ledger::Grant& grant) override;
   void OnGrantCaptcha(const std::string& image, const std::string& hint) override;
   void OnRecoverWallet(ledger::Result result,
                       double balance,
-                      const std::vector<ledger::Grant>& grants) override {}
+                      const std::vector<ledger::Grant>& grants) override;
   void OnReconcileComplete(ledger::Result result,
                            const std::string& viewing_id,
                            ledger::PUBLISHER_CATEGORY category,
                            const std::string& probi) override;
   void OnGrantFinish(ledger::Result result,
-                     const ledger::Grant& grant) override {}
+                     const ledger::Grant& grant) override;
   void LoadLedgerState(ledger::LedgerCallbackHandler* handler) override;
   void LoadPublisherState(ledger::LedgerCallbackHandler* handler) override;
   void SaveLedgerState(const std::string& ledger_state,

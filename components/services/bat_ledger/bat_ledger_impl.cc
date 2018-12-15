@@ -4,7 +4,9 @@
 
 #include "brave/components/services/bat_ledger/bat_ledger_impl.h"
 
+#include "base/containers/flat_map.h"
 #include "brave/components/services/bat_ledger/bat_ledger_client_mojo_proxy.h"
+#include "mojo/public/cpp/bindings/map.h"
 
 namespace bat_ledger {
 
@@ -63,6 +65,13 @@ void BatLedgerImpl::GetReconcileStamp(GetReconcileStampCallback callback) {
   std::move(callback).Run(ledger_->GetReconcileStamp());
 }
 
+void BatLedgerImpl::OnLoad(const std::string& visit_data,
+    uint64_t current_time) {
+  ledger::VisitData visitData;
+  if (visitData.loadFromJson(visit_data))
+    ledger_->OnLoad(visitData, current_time);
+}
+
 void BatLedgerImpl::OnUnload(uint32_t tab_id, uint64_t current_time) {
   ledger_->OnUnload(tab_id, current_time);
 }
@@ -89,6 +98,24 @@ void BatLedgerImpl::OnMediaStart(uint32_t tab_id, uint64_t current_time) {
 
 void BatLedgerImpl::OnMediaStop(uint32_t tab_id, uint64_t current_time) {
   ledger_->OnMediaStop(tab_id, current_time);
+}
+
+void BatLedgerImpl::OnPostData(const std::string& url,
+    const std::string& first_party_url, const std::string& referrer,
+    const std::string& post_data, const std::string& visit_data) {
+  ledger::VisitData visitData;
+  if (visitData.loadFromJson(visit_data))
+    ledger_->OnPostData(url, first_party_url, referrer, post_data, visitData);
+}
+
+void BatLedgerImpl::OnXHRLoad(uint32_t tab_id, const std::string& url,
+    const base::flat_map<std::string, std::string>& parts,
+    const std::string& first_party_url, const std::string& referrer,
+    const std::string& visit_data) {
+  ledger::VisitData visitData;
+  if (visitData.loadFromJson(visit_data))
+    ledger_->OnXHRLoad(tab_id, url, mojo::FlatMapToMap(parts),
+        first_party_url, referrer, visitData);
 }
 
 void BatLedgerImpl::SetPublisherExclude(const std::string& publisher_key,
@@ -196,13 +223,45 @@ void BatLedgerImpl::OnTimer(uint32_t timer_id, OnTimerCallback callback) {
   std::move(callback).Run();
 }
 
+void BatLedgerImpl::GetAllBalanceReports(
+    GetAllBalanceReportsCallback callback) {
+  auto reports = ledger_->GetAllBalanceReports();
+  base::flat_map<std::string, std::string> out_reports;
+  for (auto const& report : reports) {
+    out_reports[report.first] = report.second.ToJson();
+  }
+  std::move(callback).Run(out_reports);
+}
+
+void BatLedgerImpl::GetBalanceReport(int32_t month, int32_t year,
+    GetBalanceReportCallback callback) {
+  ledger::BalanceReportInfo info;
+  bool result =
+    ledger_->GetBalanceReport(ToLedgerPublisherMonth(month), year, &info);
+  std::move(callback).Run(result, info.ToJson());
+}
+
 void BatLedgerImpl::IsWalletCreated(IsWalletCreatedCallback callback) {
   std::move(callback).Run(ledger_->IsWalletCreated());
+}
+
+void BatLedgerImpl::GetPublisherActivityFromUrl(uint64_t window_id,
+    const std::string& visit_data) {
+  ledger::VisitData visitData;
+  if (visitData.loadFromJson(visit_data))
+    ledger_->GetPublisherActivityFromUrl(window_id, visitData);
 }
 
 void BatLedgerImpl::GetContributionAmount(
     GetContributionAmountCallback callback) {
   std::move(callback).Run(ledger_->GetContributionAmount());
+}
+
+void BatLedgerImpl::DoDirectDonation(const std::string& publisher_info,
+    int32_t amount, const std::string& currency) {
+  ledger::PublisherInfo info;
+  if (info.loadFromJson(publisher_info))
+    ledger_->DoDirectDonation(info, amount, currency);
 }
 
 void BatLedgerImpl::RemoveRecurring(const std::string& publisher_key) {
