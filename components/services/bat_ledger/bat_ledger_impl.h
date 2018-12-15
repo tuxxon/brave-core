@@ -29,6 +29,7 @@ class BatLedgerImpl : public mojom::BatLedger {
         GetPublisherMinVisitTimeCallback callback) override;
     void GetReconcileStamp(GetReconcileStampCallback callback) override;
 
+    void OnLoad(const std::string& visit_data, uint64_t current_time) override;
     void OnUnload(uint32_t tab_id, uint64_t current_time) override;
     void OnShow(uint32_t tab_id, uint64_t current_time) override;
     void OnHide(uint32_t tab_id, uint64_t current_time) override;
@@ -36,6 +37,14 @@ class BatLedgerImpl : public mojom::BatLedger {
     void OnBackground(uint32_t tab_id, uint64_t current_time) override;
     void OnMediaStart(uint32_t tab_id, uint64_t current_time) override;
     void OnMediaStop(uint32_t tab_id, uint64_t current_time) override;
+
+    void OnPostData(const std::string& url,
+        const std::string& first_party_url, const std::string& referrer,
+        const std::string& post_data, const std::string& visit_data) override;
+    void OnXHRLoad(uint32_t tab_id, const std::string& url,
+        const base::flat_map<std::string, std::string>& parts,
+        const std::string& first_party_url, const std::string& referrer,
+        const std::string& visit_data) override;
 
     void SetPublisherExclude(const std::string& publisher_key,
         int32_t exclude) override;
@@ -74,10 +83,20 @@ class BatLedgerImpl : public mojom::BatLedger {
 
     void OnTimer(uint32_t timer_id, OnTimerCallback callback) override;
 
+    void GetAllBalanceReports(GetAllBalanceReportsCallback callback) override;
+    void GetBalanceReport(int32_t month, int32_t year,
+        GetBalanceReportCallback callback) override;
+
     void IsWalletCreated(IsWalletCreatedCallback callback) override;
+
+    void GetPublisherActivityFromUrl(uint64_t window_id,
+        const std::string& visit_data) override;
 
     void GetContributionAmount(
       GetContributionAmountCallback callback) override;
+
+    void DoDirectDonation(const std::string& publisher_info, int32_t amount,
+        const std::string& currency) override;
 
     void RemoveRecurring(const std::string& publisher_key) override;
     void SetPublisherPanelExclude(const std::string& publisher_key,
