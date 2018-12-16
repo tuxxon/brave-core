@@ -52,6 +52,7 @@
 #include "content_site.h"
 #include "extensions/buildflags/buildflags.h"
 #include "mojo/public/cpp/bindings/map.h"
+#include "mojo/public/cpp/bindings/sync_call_restrictions.h"
 #include "net/base/escape.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "net/base/url_util.h"
@@ -404,9 +405,15 @@ void RewardsServiceImpl::GetCurrentContributeList(
   filter.category = ledger::PUBLISHER_CATEGORY::AUTO_CONTRIBUTE;
   filter.month = ledger::PUBLISHER_MONTH::ANY;
   filter.year = -1;
-  bat_ledger_->GetPublisherMinVisitTime(&(filter.min_duration)); // sync
+  {
+    mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
+    bat_ledger_->GetPublisherMinVisitTime(&(filter.min_duration)); // sync
+  }
   filter.order_by.push_back(std::pair<std::string, bool>("ai.percent", false));
-  bat_ledger_->GetReconcileStamp(&(filter.reconcile_stamp)); // sync
+  {
+    mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
+    bat_ledger_->GetReconcileStamp(&(filter.reconcile_stamp)); // sync
+  }
   filter.excluded =
     ledger::PUBLISHER_EXCLUDE_FILTER::FILTER_ALL_EXCEPT_EXCLUDED;
   filter.percent = 1;
@@ -1071,12 +1078,14 @@ void RewardsServiceImpl::TriggerOnGrantCaptcha(const std::string& image, const s
 }
 
 std::string RewardsServiceImpl::GetWalletPassphrase() const {
+  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
   std::string pass_phrase;
   bat_ledger_->GetWalletPassphrase(&pass_phrase);
   return pass_phrase;
 }
 
 unsigned int RewardsServiceImpl::GetNumExcludedSites() const {
+  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
   uint32_t num_excluded_sites;
   bat_ledger_->GetNumExcludedSites(&num_excluded_sites);
   return num_excluded_sites;
@@ -1121,6 +1130,7 @@ void RewardsServiceImpl::TriggerOnGrantFinish(ledger::Result result,
 }
 
 uint64_t RewardsServiceImpl::GetReconcileStamp() const {
+  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
   uint64_t reconcile_stamp;
   bat_ledger_->GetReconcileStamp(&reconcile_stamp);
   return reconcile_stamp;
@@ -1132,10 +1142,13 @@ std::map<std::string, std::string> RewardsServiceImpl::GetAddresses() const {
   std::string btc_address;
   std::string eth_address;
   std::string ltc_address;
-  bat_ledger_->GetBATAddress(&bat_address);
-  bat_ledger_->GetBTCAddress(&btc_address);
-  bat_ledger_->GetETHAddress(&eth_address);
-  bat_ledger_->GetLTCAddress(&ltc_address);
+  {
+    mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
+    bat_ledger_->GetBATAddress(&bat_address);
+    bat_ledger_->GetBTCAddress(&btc_address);
+    bat_ledger_->GetETHAddress(&eth_address);
+    bat_ledger_->GetLTCAddress(&ltc_address);
+  }
   addresses.emplace("BAT", bat_address);
   addresses.emplace("BTC", btc_address);
   addresses.emplace("ETH", eth_address);
@@ -1148,6 +1161,7 @@ void RewardsServiceImpl::SetRewardsMainEnabled(bool enabled) const {
 }
 
 uint64_t RewardsServiceImpl::GetPublisherMinVisitTime() const {
+  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
   uint64_t min_visit_time;
   bat_ledger_->GetPublisherMinVisitTime(&min_visit_time);
   return min_visit_time;
@@ -1159,6 +1173,7 @@ void RewardsServiceImpl::SetPublisherMinVisitTime(
 }
 
 unsigned int RewardsServiceImpl::GetPublisherMinVisits() const {
+  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
   uint32_t min_visits;
   bat_ledger_->GetPublisherMinVisits(&min_visits);
   return min_visits;
@@ -1169,6 +1184,7 @@ void RewardsServiceImpl::SetPublisherMinVisits(unsigned int visits) const {
 }
 
 bool RewardsServiceImpl::GetPublisherAllowNonVerified() const {
+  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
   bool allowed;
   bat_ledger_->GetPublisherAllowNonVerified(&allowed);
   return allowed;
@@ -1179,6 +1195,7 @@ void RewardsServiceImpl::SetPublisherAllowNonVerified(bool allow) const {
 }
 
 bool RewardsServiceImpl::GetPublisherAllowVideos() const {
+  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
   bool allowed;
   bat_ledger_->GetPublisherAllowVideos(&allowed);
   return allowed;
@@ -1201,6 +1218,7 @@ void RewardsServiceImpl::SetUserChangedContribution() const {
 }
 
 bool RewardsServiceImpl::GetAutoContribute() const {
+  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
   bool auto_contribute;
   bat_ledger_->GetAutoContribute(&auto_contribute);
   return auto_contribute;
@@ -1255,8 +1273,8 @@ void RewardsServiceImpl::SetTimer(uint64_t time_offset,
 }
 
 void RewardsServiceImpl::OnTimer(uint32_t timer_id) {
-  bat_ledger_->OnTimer(timer_id);
   timers_.erase(timer_id);
+  bat_ledger_->OnTimer(timer_id);
 }
 
 void RewardsServiceImpl::LoadPublisherList(
@@ -1323,6 +1341,7 @@ void RewardsServiceImpl::GetCurrentBalanceReport() {
 }
 
 bool RewardsServiceImpl::IsWalletCreated() {
+  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
   bool wallet_created;
   bat_ledger_->IsWalletCreated(&wallet_created);
   return wallet_created;
@@ -1376,6 +1395,7 @@ void RewardsServiceImpl::OnPublisherActivity(ledger::Result result,
 }
 
 double RewardsServiceImpl::GetContributionAmount() {
+  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
   double contribution_amount;
   bat_ledger_->GetContributionAmount(&contribution_amount);
   return contribution_amount;
