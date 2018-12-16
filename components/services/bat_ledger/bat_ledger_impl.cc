@@ -240,9 +240,8 @@ void BatLedgerImpl::SetAutoContribute(bool enabled) {
   ledger_->SetAutoContribute(enabled);
 }
 
-void BatLedgerImpl::OnTimer(uint32_t timer_id, OnTimerCallback callback) {
+void BatLedgerImpl::OnTimer(uint32_t timer_id) {
   ledger_->OnTimer(timer_id);
-  std::move(callback).Run();
 }
 
 void BatLedgerImpl::GetAllBalanceReports(

@@ -86,9 +86,7 @@ interface BatLedger {
   SetContributionAmount(double amount);
   SetAutoContribute(bool enabled);
 
-  // TODO: Revise rewards_service_impl to be async
-  [Sync]
-  OnTimer(uint32 timer_id) => ();
+  OnTimer(uint32 timer_id);
 
   [Sync] // TODO: Revise rewards_service_impl to be async
   GetAllBalanceReports() => (map<string, string> reports);

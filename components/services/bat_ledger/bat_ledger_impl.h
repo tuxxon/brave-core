@@ -90,7 +90,7 @@ class BatLedgerImpl : public mojom::BatLedger,
     void SetContributionAmount(double amount) override;
     void SetAutoContribute(bool enabled) override;
 
-    void OnTimer(uint32_t timer_id, OnTimerCallback callback) override;
+    void OnTimer(uint32_t timer_id) override;
 
     void GetAllBalanceReports(GetAllBalanceReportsCallback callback) override;
     void GetBalanceReport(int32_t month, int32_t year,
