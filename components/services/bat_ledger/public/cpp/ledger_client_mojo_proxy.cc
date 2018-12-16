@@ -4,6 +4,7 @@
 
 #include "brave/components/services/bat_ledger/public/cpp/ledger_client_mojo_proxy.h"
 
+#include "base/logging.h"
 #include "mojo/public/cpp/bindings/map.h"
 
 using namespace std::placeholders;
@@ -44,16 +45,26 @@ LedgerClientMojoProxy::LedgerClientMojoProxy(
 LedgerClientMojoProxy::~LedgerClientMojoProxy() {
 }
 
-void LedgerClientMojoProxy::LoadLedgerState(LoadLedgerStateCallback callback) {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
-  load_ledger_state_callback_ = std::move(callback);
-  ledger_client_->LoadLedgerState(this);
+template <typename Callback>
+void LedgerClientMojoProxy::CallbackHolder<Callback>::OnLedgerStateLoaded(
+    ledger::Result result, const std::string& data) {
+  NOTREACHED();
 }
 
-void LedgerClientMojoProxy::OnLedgerStateLoaded(ledger::Result result,
-                                                const std::string& data) {
+template <>
+void LedgerClientMojoProxy::CallbackHolder<
+  LedgerClientMojoProxy::LoadLedgerStateCallback>::OnLedgerStateLoaded(
+    ledger::Result result, const std::string& data) {
+  if (is_valid())
+    std::move(callback_).Run(ToMojomResult(result), data);
+  delete this;
+}
+
+void LedgerClientMojoProxy::LoadLedgerState(LoadLedgerStateCallback callback) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
-  std::move(load_ledger_state_callback_).Run(ToMojomResult(result), data);
+  auto* holder = new CallbackHolder<LoadLedgerStateCallback>(AsWeakPtr(),
+      std::move(callback));
+  ledger_client_->LoadLedgerState(holder);
 }
 
 void LedgerClientMojoProxy::GenerateGUID(GenerateGUIDCallback callback) {
@@ -76,64 +87,119 @@ void LedgerClientMojoProxy::OnWalletProperties(int32_t result,
 
 void LedgerClientMojoProxy::LoadPublisherState(
     LoadPublisherStateCallback callback) {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
-  load_publisher_state_callback_ = std::move(callback);
-  ledger_client_->LoadPublisherState(this);
+  auto* holder = new CallbackHolder<LoadPublisherStateCallback>(
+      AsWeakPtr(), std::move(callback));
+  ledger_client_->LoadPublisherState(holder);
 }
 
-void LedgerClientMojoProxy::OnPublisherStateLoaded(ledger::Result result,
-                                                   const std::string& data) {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
-  std::move(load_publisher_state_callback_).Run(ToMojomResult(result), data);
+template <typename Callback>
+void LedgerClientMojoProxy::CallbackHolder<Callback>::OnPublisherStateLoaded(
+    ledger::Result result, const std::string& data) {
+  NOTREACHED();
+}
+
+template <>
+void LedgerClientMojoProxy::CallbackHolder<
+  LedgerClientMojoProxy::LoadPublisherStateCallback>::OnPublisherStateLoaded(
+    ledger::Result result, const std::string& data) {
+  if (is_valid())
+    std::move(callback_).Run(ToMojomResult(result), data);
+  delete this;
 }
 
 void LedgerClientMojoProxy::LoadPublisherList(
     LoadPublisherListCallback callback) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
-  load_publisher_list_callback_ = std::move(callback);
-  ledger_client_->LoadPublisherList(this);
+  auto* holder = new CallbackHolder<LoadPublisherListCallback>(
+      AsWeakPtr(), std::move(callback));
+  ledger_client_->LoadPublisherList(holder);
 }
 
-void LedgerClientMojoProxy::OnPublisherListLoaded(ledger::Result result,
-                                                  const std::string& data) {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
-  std::move(load_publisher_list_callback_).Run(ToMojomResult(result), data);
+template <typename Callback>
+void LedgerClientMojoProxy::CallbackHolder<Callback>::OnPublisherListLoaded(
+    ledger::Result result, const std::string& data) {
+  NOTREACHED();
+}
+
+template <>
+void LedgerClientMojoProxy::CallbackHolder<
+  LedgerClientMojoProxy::LoadPublisherListCallback>::OnPublisherListLoaded(
+    ledger::Result result, const std::string& data) {
+  if (is_valid())
+    std::move(callback_).Run(ToMojomResult(result), data);
+  delete this;
 }
 
 void LedgerClientMojoProxy::SaveLedgerState(
     const std::string& ledger_state, SaveLedgerStateCallback callback) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
-  save_ledger_state_callback_ = std::move(callback);
-  ledger_client_->SaveLedgerState(ledger_state, this);
+  auto* holder = new CallbackHolder<SaveLedgerStateCallback>(
+      AsWeakPtr(), std::move(callback));
+  ledger_client_->SaveLedgerState(ledger_state, holder);
 }
 
-void LedgerClientMojoProxy::OnLedgerStateSaved(ledger::Result result) {
+template <typename Callback>
+void LedgerClientMojoProxy::CallbackHolder<Callback>::OnLedgerStateSaved(
+    ledger::Result result) {
+  NOTREACHED();
+}
+
+template <>
+void LedgerClientMojoProxy::CallbackHolder<
+  LedgerClientMojoProxy::SaveLedgerStateCallback>::OnLedgerStateSaved(
+    ledger::Result result) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
-  std::move(save_ledger_state_callback_).Run(ToMojomResult(result));
+  if (is_valid())
+    std::move(callback_).Run(ToMojomResult(result));
+  delete this;
 }
 
 void LedgerClientMojoProxy::SavePublisherState(
     const std::string& publisher_state, SavePublisherStateCallback callback) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
-  save_publisher_state_callback_ = std::move(callback);
-  ledger_client_->SavePublisherState(publisher_state, this);
+  auto* holder = new CallbackHolder<SavePublisherStateCallback>(
+      AsWeakPtr(), std::move(callback));
+  ledger_client_->SavePublisherState(publisher_state, holder);
 }
 
-void LedgerClientMojoProxy::OnPublisherStateSaved(ledger::Result result) {
+template <typename Callback>
+void LedgerClientMojoProxy::CallbackHolder<Callback>::OnPublisherStateSaved(
+    ledger::Result result) {
+  NOTREACHED();
+}
+
+template <>
+void LedgerClientMojoProxy::CallbackHolder<
+  LedgerClientMojoProxy::SavePublisherStateCallback>::OnPublisherStateSaved(
+    ledger::Result result) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
-  std::move(save_publisher_state_callback_).Run(ToMojomResult(result));
+  if (is_valid())
+    std::move(callback_).Run(ToMojomResult(result));
+  delete this;
 }
 
 void LedgerClientMojoProxy::SavePublishersList(
     const std::string& publishers_list, SavePublishersListCallback callback) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
-  save_publishers_list_callback_ = std::move(callback);
-  ledger_client_->SavePublishersList(publishers_list, this);
+  auto* holder = new CallbackHolder<SavePublishersListCallback>(
+      AsWeakPtr(), std::move(callback));
+  ledger_client_->SavePublishersList(publishers_list, holder);
 }
 
-void LedgerClientMojoProxy::OnPublishersListSaved(ledger::Result result) {
+template <typename Callback>
+void LedgerClientMojoProxy::CallbackHolder<Callback>::OnPublishersListSaved(
+    ledger::Result result) {
+  NOTREACHED();
+}
+
+template <>
+void LedgerClientMojoProxy::CallbackHolder<
+  LedgerClientMojoProxy::SavePublishersListCallback>::OnPublishersListSaved(
+    ledger::Result result) {
   LOG(ERROR) << __PRETTY_FUNCTION__;
-  std::move(save_publishers_list_callback_).Run(ToMojomResult(result));
+  if (is_valid())
+    std::move(callback_).Run(ToMojomResult(result));
+  delete this;
 }
 
 void LedgerClientMojoProxy::OnGrant(int32_t result, const std::string& grant) {

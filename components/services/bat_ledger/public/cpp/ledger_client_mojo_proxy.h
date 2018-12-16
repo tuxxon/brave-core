@@ -14,7 +14,6 @@
 namespace bat_ledger {
 
 class LedgerClientMojoProxy : public mojom::BatLedgerClient,
-                          public ledger::LedgerCallbackHandler,
                           public base::SupportsWeakPtr<LedgerClientMojoProxy> {
  public:
   LedgerClientMojoProxy(ledger::LedgerClient* ledger_client);
@@ -88,21 +87,11 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
     int32_t method,
     LoadURLCallback callback) override;
 
-  // ledger::LedgerCallbackHandler
-  void OnLedgerStateLoaded(ledger::Result result,
-      const std::string& data) override;
-  void OnPublisherStateLoaded(ledger::Result result,
-      const std::string& data) override;
-  void OnPublisherListLoaded(ledger::Result result,
-      const std::string& data) override;
-  void OnLedgerStateSaved(ledger::Result result) override;
-  void OnPublisherStateSaved(ledger::Result result) override;
-  void OnPublishersListSaved(ledger::Result result) override;
-
  private:
   // workaround to pass base::OnceCallback into std::bind
+  // also serves as a wrapper for passing ledger::LedgerCallbackHandler*
   template <typename Callback>
-  class CallbackHolder {
+  class CallbackHolder : public ledger::LedgerCallbackHandler {
    public:
     CallbackHolder(base::WeakPtr<LedgerClientMojoProxy> client,
         Callback callback)
@@ -112,6 +101,16 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
     bool is_valid() { return !!client_.get(); }
     Callback& get() { return callback_; }
 
+    // ledger::LedgerCallbackHandler impl
+    void OnLedgerStateLoaded(ledger::Result result,
+        const std::string& data) override;
+    void OnPublisherStateLoaded(ledger::Result result,
+        const std::string& data) override;
+    void OnPublisherListLoaded(ledger::Result result,
+        const std::string& data) override;
+    void OnLedgerStateSaved(ledger::Result result) override;
+    void OnPublisherStateSaved(ledger::Result result) override;
+    void OnPublishersListSaved(ledger::Result result) override;
    private:
     base::WeakPtr<LedgerClientMojoProxy> client_;
     Callback callback_;
@@ -161,12 +160,6 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
       const std::map<std::string, std::string>& headers);
 
   ledger::LedgerClient* ledger_client_;
-  LoadLedgerStateCallback load_ledger_state_callback_;
-  LoadPublisherStateCallback load_publisher_state_callback_;
-  LoadPublisherListCallback load_publisher_list_callback_;
-  SaveLedgerStateCallback save_ledger_state_callback_;
-  SavePublisherStateCallback save_publisher_state_callback_;
-  SavePublishersListCallback save_publishers_list_callback_;
 
   DISALLOW_COPY_AND_ASSIGN(LedgerClientMojoProxy);
 };
