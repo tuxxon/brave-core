@@ -422,12 +422,13 @@ ledger::Ledger* Ledger::CreateInstance(LedgerClient* client) {
   return new bat_ledger::LedgerImpl(client);
 }
 
-WalletInfo::WalletInfo () : balance_(0), parameters_days_(0) {}
+WalletInfo::WalletInfo () : balance_(0), fee_amount_(0), parameters_days_(0) {}
 WalletInfo::~WalletInfo () {}
 WalletInfo::WalletInfo (const ledger::WalletInfo &info) {
   altcurrency_ = info.altcurrency_;
   probi_ = info.probi_;
   balance_ = info.balance_;
+  fee_amount_ = info.fee_amount_;
   rates_ = info.rates_;
   parameters_choices_ = info.parameters_choices_;
   parameters_range_ = info.parameters_range_;
