@@ -55,7 +55,6 @@ interface BatLedger {
 
   FetchGrant(string lang, string payment_id);
   GetGrantCaptcha();
-  [Sync]
   GetWalletPassphrase() => (string wallet_passphrase);
   [Sync]
   GetNumExcludedSites() => (uint32 num_excluded_sites);
@@ -89,10 +88,7 @@ interface BatLedger {
   IsWalletCreated() => (bool wallet_created);
 
   GetPublisherActivityFromUrl(uint64 window_id, string visit_data);
-
-  [Sync]
   GetContributionAmount() => (double contribution_amount);
-
   GetPublisherBanner(string publisher_id) => (string banner);
 
   DoDirectDonation(string publisher_info, int32 amount, string currency);

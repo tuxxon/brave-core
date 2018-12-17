@@ -79,7 +79,8 @@ class RewardsServiceImpl : public RewardsService,
   void FetchGrant(const std::string& lang, const std::string& paymentId) override;
   void GetGrantCaptcha() override;
   void SolveGrantCaptcha(const std::string& solution) const override;
-  std::string GetWalletPassphrase() const override;
+  void GetWalletPassphrase(
+      const GetWalletPassphraseCallback& callback) override;
   unsigned int GetNumExcludedSites() const override;
   void RecoverWallet(const std::string passPhrase) const override;
   void GetCurrentContributeList(
@@ -122,7 +123,7 @@ class RewardsServiceImpl : public RewardsService,
   void GetCurrentBalanceReport() override;
   bool IsWalletCreated() override;
   void GetPublisherActivityFromUrl(uint64_t windowId, const std::string& url, const std::string& favicon_url) override;
-  double GetContributionAmount() override;
+  void GetContributionAmount(const GetContributionAmountCallback& callback) override;
   void GetPublisherBanner(const std::string& publisher_id) override;
   void OnPublisherBanner(std::unique_ptr<ledger::PublisherBanner> banner);
   void RemoveRecurring(const std::string& publisher_key) override;
@@ -306,7 +307,6 @@ class RewardsServiceImpl : public RewardsService,
   void OnGetAllBalanceReports(
       const GetAllBalanceReportsCallback& callback,
       const base::flat_map<std::string, std::string>& json_reports);
-
   void OnGetCurrentBalanceReport(
       bool success, const std::string& json_report);
 
