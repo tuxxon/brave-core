@@ -49,15 +49,9 @@ interface BatLedger {
   SetPublisherExclude(string publisher_key, int32 exclude);
   RestorePublishers();
 
-  // TODO: Revise rewards_service_impl to be async
-  [Sync]
-  SetBalanceReportItem(
-      int32 month, int32 year, int32 type, string probi) => ();
-
-  // TODO: Revise rewards_service_impl to be async
-  [Sync]
+  SetBalanceReportItem(int32 month, int32 year, int32 type, string probi);
   OnReconcileCompleteSuccess(string viewing_id, int32 category, string probi,
-      int32 month, int32 year, uint32 data) => ();
+      int32 month, int32 year, uint32 data);
 
   FetchGrant(string lang, string payment_id);
   GetGrantCaptcha();
