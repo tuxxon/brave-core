@@ -117,7 +117,8 @@ class RewardsServiceImpl : public RewardsService,
   void SaveMediaPublisherInfo(const std::string& media_key, const std::string& publisher_id) override;
   void ExcludePublisher(const std::string publisherKey) const override;
   void RestorePublishers() override;
-  std::map<std::string, brave_rewards::BalanceReport> GetAllBalanceReports() override;
+  void GetAllBalanceReports(
+      const GetAllBalanceReportsCallback& callback) override;
   void GetCurrentBalanceReport() override;
   bool IsWalletCreated() override;
   void GetPublisherActivityFromUrl(uint64_t windowId, const std::string& url, const std::string& favicon_url) override;
@@ -302,6 +303,12 @@ class RewardsServiceImpl : public RewardsService,
       const GetCurrentContributeListCallback& callback,
       const std::vector<std::string>& publisher_info_list,
       uint32_t next_record);
+  void OnGetAllBalanceReports(
+      const GetAllBalanceReportsCallback& callback,
+      const base::flat_map<std::string, std::string>& json_reports);
+
+  void OnGetCurrentBalanceReport(
+      bool success, const std::string& json_report);
 
   Profile* profile_;  // NOT OWNED
   mojo::AssociatedBinding<bat_ledger::mojom::BatLedgerClient>

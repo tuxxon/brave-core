@@ -88,9 +88,7 @@ interface BatLedger {
 
   OnTimer(uint32 timer_id);
 
-  [Sync] // TODO: Revise rewards_service_impl to be async
   GetAllBalanceReports() => (map<string, string> reports);
-  [Sync] // TODO: Revise rewards_service_impl to be async
   GetBalanceReport(int32 month, int32 year) => (bool result, string report);
 
   [Sync]

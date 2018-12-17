@@ -1297,9 +1297,9 @@ void RewardsServiceImpl::OnPublisherListLoaded(
       data);
 }
 
-std::map<std::string, brave_rewards::BalanceReport> RewardsServiceImpl::GetAllBalanceReports() {
-  base::flat_map<std::string, std::string> json_reports;
-  bat_ledger_->GetAllBalanceReports(&json_reports);
+void RewardsServiceImpl::OnGetAllBalanceReports(
+    const GetAllBalanceReportsCallback& callback,
+    const base::flat_map<std::string, std::string>& json_reports) {
   std::map<std::string, ledger::BalanceReportInfo> reports;
   for (auto const& report : json_reports) {
     ledger::BalanceReportInfo info;
@@ -1322,22 +1322,31 @@ std::map<std::string, brave_rewards::BalanceReport> RewardsServiceImpl::GetAllBa
     newReports[report.first] = newReport;
   }
 
-  return newReports;
+  callback.Run(newReports);
 }
 
-void RewardsServiceImpl::GetCurrentBalanceReport() {
-  auto now = base::Time::Now();
-  bool success = false;
-  std::string json_report;
-  bat_ledger_->GetBalanceReport(GetPublisherMonth(now), GetPublisherYear(now),
-      &success, &json_report);
+void RewardsServiceImpl::GetAllBalanceReports(
+    const GetAllBalanceReportsCallback& callback) {
+  bat_ledger_->GetAllBalanceReports(
+      base::BindOnce(&RewardsServiceImpl::OnGetAllBalanceReports,
+        AsWeakPtr(), callback));
+}
 
+void RewardsServiceImpl::OnGetCurrentBalanceReport(
+    bool success, const std::string& json_report) {
   ledger::BalanceReportInfo report;
   report.loadFromJson(json_report);
 
   if (success) {
     TriggerOnGetCurrentBalanceReport(report);
   }
+}
+
+void RewardsServiceImpl::GetCurrentBalanceReport() {
+  auto now = base::Time::Now();
+  bat_ledger_->GetBalanceReport(GetPublisherMonth(now), GetPublisherYear(now),
+      base::BindOnce(&RewardsServiceImpl::OnGetCurrentBalanceReport,
+        AsWeakPtr()));
 }
 
 bool RewardsServiceImpl::IsWalletCreated() {
