@@ -68,6 +68,8 @@ class RewardsDOMHandler : public WebUIMessageHandler,
   void OnGetCurrentContributeList(
       std::unique_ptr<brave_rewards::ContentSiteList>,
       uint32_t record);
+  void OnGetAllBalanceReports(
+      const std::map<std::string, brave_rewards::BalanceReport>& reports);
   void GetBalanceReports(const base::ListValue* args);
   void ExcludePublisher(const base::ListValue* args);
   void RestorePublishers(const base::ListValue* args);
@@ -230,9 +232,9 @@ void RewardsDOMHandler::Init() {
     rewards_service_->AddObserver(this);
 }
 
-void RewardsDOMHandler::GetAllBalanceReports() {
-  if (rewards_service_ && web_ui()->CanCallJavascript()) {
-    std::map<std::string, brave_rewards::BalanceReport> reports = rewards_service_->GetAllBalanceReports();
+void RewardsDOMHandler::OnGetAllBalanceReports(
+    const std::map<std::string, brave_rewards::BalanceReport>& reports) {
+  if (web_ui()->CanCallJavascript()) {
     base::DictionaryValue newReports;
     if (!reports.empty()) {
       for (auto const& report : reports) {
@@ -251,8 +253,16 @@ void RewardsDOMHandler::GetAllBalanceReports() {
       }
     }
 
-    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.balanceReports", newReports);
+    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.balanceReports",
+        newReports);
   }
+}
+
+void RewardsDOMHandler::GetAllBalanceReports() {
+  if (rewards_service_)
+    rewards_service_->GetAllBalanceReports(
+        base::Bind(&RewardsDOMHandler::OnGetAllBalanceReports,
+          weak_factory_.GetWeakPtr()));
 }
 
 void RewardsDOMHandler::HandleCreateWalletRequested(const base::ListValue* args) {

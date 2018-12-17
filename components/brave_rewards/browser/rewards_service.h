@@ -41,6 +41,8 @@ class RewardsServiceObserver;
 using GetCurrentContributeListCallback =
     base::Callback<void(std::unique_ptr<ContentSiteList>,
         uint32_t /* next_record */)>;
+using GetAllBalanceReportsCallback = base::Callback<void(
+    const std::map<std::string, brave_rewards::BalanceReport>&)>;
 
 class RewardsService : public KeyedService {
  public:
@@ -95,7 +97,8 @@ class RewardsService : public KeyedService {
   virtual bool GetAutoContribute() const = 0;
   virtual void SetAutoContribute(bool enabled) const = 0;
   virtual void SetTimer(uint64_t time_offset, uint32_t& timer_id) = 0;
-  virtual std::map<std::string, brave_rewards::BalanceReport> GetAllBalanceReports() = 0;
+  virtual void GetAllBalanceReports(
+      const GetAllBalanceReportsCallback& callback) = 0;
   virtual void GetCurrentBalanceReport() = 0;
   virtual bool IsWalletCreated() = 0;
   virtual void GetPublisherActivityFromUrl(uint64_t windowId, const std::string& url, const std::string& favicon_url) = 0;
