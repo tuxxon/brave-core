@@ -151,20 +151,17 @@ void BatLedgerImpl::RestorePublishers() {
 }
 
 void BatLedgerImpl::SetBalanceReportItem(int32_t month,
-    int32_t year, int32_t type, const std::string& probi,
-    SetBalanceReportItemCallback callback) {
+    int32_t year, int32_t type, const std::string& probi) {
   ledger_->SetBalanceReportItem(
       ToLedgerPublisherMonth(month), year, ToLedgerReportType(type), probi);
-  std::move(callback).Run();
 }
 
 void BatLedgerImpl::OnReconcileCompleteSuccess(const std::string& viewing_id,
     int32_t category, const std::string& probi, int32_t month,
-    int32_t year, uint32_t data, OnReconcileCompleteSuccessCallback callback) {
+    int32_t year, uint32_t data) {
   ledger_->OnReconcileCompleteSuccess(viewing_id,
       ToLedgerPublisherCategory(category), probi,
       ToLedgerPublisherMonth(month), year, data);
-  std::move(callback).Run();
 }
 
 void BatLedgerImpl::FetchGrant(const std::string& lang,

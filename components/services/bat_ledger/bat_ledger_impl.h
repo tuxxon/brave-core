@@ -61,12 +61,10 @@ class BatLedgerImpl : public mojom::BatLedger,
 
     void SetBalanceReportItem(
         int32_t month, int32_t year, int32_t type,
-        const std::string& probi,
-        SetBalanceReportItemCallback callback) override;
+        const std::string& probi) override;
     void OnReconcileCompleteSuccess(const std::string& viewing_id,
         int32_t category, const std::string& probi, int32_t month,
-        int32_t year, uint32_t data,
-        OnReconcileCompleteSuccessCallback callback) override;
+        int32_t year, uint32_t data) override;
 
     void FetchGrant(
         const std::string& lang, const std::string& payment_id) override;
