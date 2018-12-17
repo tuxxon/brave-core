@@ -83,6 +83,8 @@ class RewardsDOMHandler : public WebUIMessageHandler,
   void GetAdsData(const base::ListValue* args);
   void SaveAdsSetting(const base::ListValue* args);
   void SetBackupCompleted(const base::ListValue* args);
+  void OnGetWalletPassphrase(const std::string& pass);
+  void OnGetContributionAmount(double amount);
 
   // RewardsServiceObserver implementation
   void OnWalletInitialized(brave_rewards::RewardsService* rewards_service,
@@ -406,11 +408,18 @@ void RewardsDOMHandler::GetGrantCaptcha(const base::ListValue* args) {
   }
 }
 
-void RewardsDOMHandler::GetWalletPassphrase(const base::ListValue* args) {
-  if (rewards_service_ && web_ui()->CanCallJavascript()) {
-    std::string pass = rewards_service_->GetWalletPassphrase();
+void RewardsDOMHandler::OnGetWalletPassphrase(const std::string& pass) {
+  if (web_ui()->CanCallJavascript()) {
+    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.walletPassphrase",
+        base::Value(pass));
+  }
+}
 
-    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.walletPassphrase", base::Value(pass));
+void RewardsDOMHandler::GetWalletPassphrase(const base::ListValue* args) {
+  if (rewards_service_) {
+    rewards_service_->GetWalletPassphrase(
+        base::Bind(&RewardsDOMHandler::OnGetWalletPassphrase,
+          weak_factory_.GetWeakPtr()));
   }
 }
 
@@ -628,12 +637,18 @@ void RewardsDOMHandler::WalletExists(const base::ListValue* args) {
   }
 }
 
-void RewardsDOMHandler::GetContributionAmount(const base::ListValue* args) {
-  if (rewards_service_ && web_ui()->CanCallJavascript()) {
-    double amount = rewards_service_->GetContributionAmount();
-
-    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.contributionAmount", base::Value(amount));
+void RewardsDOMHandler::OnGetContributionAmount(double amount) {
+  if (web_ui()->CanCallJavascript()) {
+    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.contributionAmount",
+        base::Value(amount));
   }
+}
+
+void RewardsDOMHandler::GetContributionAmount(const base::ListValue* args) {
+  if (rewards_service_)
+    rewards_service_->GetContributionAmount(
+        base::Bind(&RewardsDOMHandler::OnGetContributionAmount,
+          weak_factory_.GetWeakPtr()));
 }
 
 void RewardsDOMHandler::OnReconcileComplete(

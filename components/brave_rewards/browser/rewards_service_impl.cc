@@ -1064,11 +1064,9 @@ void RewardsServiceImpl::TriggerOnGrantCaptcha(const std::string& image, const s
     observer.OnGrantCaptcha(this, image, hint);
 }
 
-std::string RewardsServiceImpl::GetWalletPassphrase() const {
-  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-  std::string pass_phrase;
-  bat_ledger_->GetWalletPassphrase(&pass_phrase);
-  return pass_phrase;
+void RewardsServiceImpl::GetWalletPassphrase(
+    const GetWalletPassphraseCallback& callback) {
+  bat_ledger_->GetWalletPassphrase(callback);
 }
 
 unsigned int RewardsServiceImpl::GetNumExcludedSites() const {
@@ -1390,11 +1388,9 @@ void RewardsServiceImpl::OnPublisherActivity(ledger::Result result,
   TriggerOnGetPublisherActivityFromUrl(result, std::move(info), windowId);
 }
 
-double RewardsServiceImpl::GetContributionAmount() {
-  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-  double contribution_amount;
-  bat_ledger_->GetContributionAmount(&contribution_amount);
-  return contribution_amount;
+void RewardsServiceImpl::GetContributionAmount(
+    const GetContributionAmountCallback& callback) {
+  bat_ledger_->GetContributionAmount(callback);
 }
 
 void RewardsServiceImpl::FetchFavIcon(const std::string& url,

@@ -43,6 +43,8 @@ using GetCurrentContributeListCallback =
         uint32_t /* next_record */)>;
 using GetAllBalanceReportsCallback = base::Callback<void(
     const std::map<std::string, brave_rewards::BalanceReport>&)>;
+using GetWalletPassphraseCallback = base::Callback<void(const std::string&)>;
+using GetContributionAmountCallback = base::Callback<void(double)>;
 
 class RewardsService : public KeyedService {
  public:
@@ -58,7 +60,8 @@ class RewardsService : public KeyedService {
   virtual void FetchGrant(const std::string& lang, const std::string& paymentId) = 0;
   virtual void GetGrantCaptcha() = 0;
   virtual void SolveGrantCaptcha(const std::string& solution) const = 0;
-  virtual std::string GetWalletPassphrase() const = 0;
+  virtual void GetWalletPassphrase(
+      const GetWalletPassphraseCallback& callback) = 0;
   virtual unsigned int GetNumExcludedSites() const = 0;
   virtual void RecoverWallet(const std::string passPhrase) const = 0;
   virtual void ExcludePublisher(const std::string publisherKey) const = 0;
@@ -102,7 +105,8 @@ class RewardsService : public KeyedService {
   virtual void GetCurrentBalanceReport() = 0;
   virtual bool IsWalletCreated() = 0;
   virtual void GetPublisherActivityFromUrl(uint64_t windowId, const std::string& url, const std::string& favicon_url) = 0;
-  virtual double GetContributionAmount() = 0;
+  virtual void GetContributionAmount(
+      const GetContributionAmountCallback& callback) = 0;
   virtual void GetPublisherBanner(const std::string& publisher_id) = 0;
   virtual void OnDonate(const std::string& publisher_key, int amount,
       bool recurring, const ledger::PublisherInfo* publisher_info = NULL) = 0;
