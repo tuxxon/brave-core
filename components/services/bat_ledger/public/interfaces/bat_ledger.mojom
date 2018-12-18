@@ -115,8 +115,6 @@ interface BatLedgerClient {
   LoadMediaPublisherInfo(string media_key) => (int32 result,
       string publisher_info);
 
-  // TODO: RunIOTask, std::unique_ptr<ledger::LedgerTaskRunner> task
-
   OnPublisherActivity(int32 result, string info, uint64 window_id);
   FetchFavIcon(string url, string favicon_key) => (bool success,
       string favicon_url);
