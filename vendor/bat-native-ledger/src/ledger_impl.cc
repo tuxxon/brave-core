@@ -410,6 +410,15 @@ void LedgerImpl::SetAutoContribute(bool enabled) {
   bat_state_->SetAutoContribute(enabled);
 }
 
+void LedgerImpl::GetAutoContributeProps(ledger::AutoContributeProps& props) {
+  props.enabled_contribute = GetAutoContribute();
+  props.contribution_min_time = GetPublisherMinVisitTime();
+  props.contribution_min_visits = GetPublisherMinVisits();
+  props.contribution_non_verified = GetPublisherAllowNonVerified();
+  props.contribution_videos = GetPublisherAllowVideos();
+  props.reconcile_stamp = GetReconcileStamp();
+}
+
 bool LedgerImpl::GetRewardsMainEnabled() const {
   return bat_state_->GetRewardsMainEnabled();
 }

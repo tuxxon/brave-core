@@ -24,11 +24,13 @@
 #include "base/task_runner_util.h"
 #include "base/threading/sequenced_task_runner_handle.h"
 #include "bat/ledger/ledger.h"
+#include "bat/ledger/auto_contribute_props.h"
 #include "bat/ledger/media_publisher_info.h"
 #include "bat/ledger/publisher_info.h"
 #include "bat/ledger/wallet_info.h"
 #include "brave/browser/ui/webui/brave_rewards_source.h"
 #include "brave/common/pref_names.h"
+#include "brave/components/brave_rewards/browser/auto_contribution_props.h"
 #include "brave/components/brave_rewards/browser/balance_report.h"
 #include "brave/components/brave_rewards/browser/publisher_info_database.h"
 #include "brave/components/brave_rewards/browser/rewards_fetcher_service_observer.h"
@@ -387,20 +389,16 @@ void RewardsServiceImpl::CreateWallet() {
 void RewardsServiceImpl::GetCurrentContributeList(
     uint32_t start,
     uint32_t limit,
+    uint64_t min_visit_time,
+    uint64_t reconcile_stamp,
     const GetCurrentContributeListCallback& callback) {
   ledger::PublisherInfoFilter filter;
   filter.category = ledger::PUBLISHER_CATEGORY::AUTO_CONTRIBUTE;
   filter.month = ledger::PUBLISHER_MONTH::ANY;
   filter.year = -1;
-  {
-    mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-    bat_ledger_->GetPublisherMinVisitTime(&(filter.min_duration)); // sync
-  }
+  filter.min_duration = min_visit_time;
   filter.order_by.push_back(std::pair<std::string, bool>("ai.percent", false));
-  {
-    mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-    bat_ledger_->GetReconcileStamp(&(filter.reconcile_stamp)); // sync
-  }
+  filter.reconcile_stamp = reconcile_stamp;
   filter.excluded =
     ledger::PUBLISHER_EXCLUDE_FILTER::FILTER_ALL_EXCEPT_EXCLUDED;
   filter.percent = 1;
@@ -639,6 +637,30 @@ void RewardsServiceImpl::OnWalletInitialized(ledger::Result result) {
 void RewardsServiceImpl::OnWalletProperties(ledger::Result result,
     std::unique_ptr<ledger::WalletInfo> wallet_info) {
   TriggerOnWalletProperties(result, std::move(wallet_info));
+}
+
+void RewardsServiceImpl::OnGetAutoContributeProps(
+    const GetAutoContributePropsCallback& callback,
+    const std::string& json_props) {
+  ledger::AutoContributeProps props;
+  props.loadFromJson(json_props);
+
+  std::unique_ptr<brave_rewards::AutoContributeProps> auto_contri_props;
+  auto_contri_props->enabled_contribute = props.enabled_contribute;
+  auto_contri_props->contribution_min_time = props.contribution_min_time;
+  auto_contri_props->contribution_min_visits = props.contribution_min_visits;
+  auto_contri_props->contribution_non_verified =
+    props.contribution_non_verified;
+  auto_contri_props->contribution_videos = props.contribution_videos;
+  auto_contri_props->reconcile_stamp = props.reconcile_stamp;
+
+  callback.Run(std::move(auto_contri_props));
+}
+
+void RewardsServiceImpl::GetAutoContributeProps(
+    const GetAutoContributePropsCallback& callback) {
+  bat_ledger_->GetAutoContributeProps(base::BindOnce(
+        &RewardsServiceImpl::OnGetAutoContributeProps, AsWeakPtr(), callback));
 }
 
 void RewardsServiceImpl::OnGrant(ledger::Result result,
@@ -1112,11 +1134,9 @@ void RewardsServiceImpl::TriggerOnGrantFinish(ledger::Result result,
     observer.OnGrantFinish(this, result, properties);
 }
 
-uint64_t RewardsServiceImpl::GetReconcileStamp() const {
-  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-  uint64_t reconcile_stamp;
-  bat_ledger_->GetReconcileStamp(&reconcile_stamp);
-  return reconcile_stamp;
+void RewardsServiceImpl::GetReconcileStamp(
+    const GetReconcileStampCallback& callback)  {
+  bat_ledger_->GetReconcileStamp(callback);
 }
 
 void RewardsServiceImpl::OnGetAddresses(const GetAddressesCallback& callback,
@@ -1133,11 +1153,9 @@ void RewardsServiceImpl::SetRewardsMainEnabled(bool enabled) const {
   bat_ledger_->SetRewardsMainEnabled(enabled);
 }
 
-uint64_t RewardsServiceImpl::GetPublisherMinVisitTime() const {
-  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-  uint64_t min_visit_time;
-  bat_ledger_->GetPublisherMinVisitTime(&min_visit_time);
-  return min_visit_time;
+void RewardsServiceImpl::GetPublisherMinVisitTime(
+    const GetPublisherMinVisitTimeCallback& callback) {
+  bat_ledger_->GetPublisherMinVisitTime(callback);
 }
 
 void RewardsServiceImpl::SetPublisherMinVisitTime(
@@ -1145,33 +1163,27 @@ void RewardsServiceImpl::SetPublisherMinVisitTime(
   bat_ledger_->SetPublisherMinVisitTime(duration_in_seconds);
 }
 
-unsigned int RewardsServiceImpl::GetPublisherMinVisits() const {
-  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-  uint32_t min_visits;
-  bat_ledger_->GetPublisherMinVisits(&min_visits);
-  return min_visits;
+void RewardsServiceImpl::GetPublisherMinVisits(
+    const GetPublisherMinVisitsCallback& callback) {
+  bat_ledger_->GetPublisherMinVisits(callback);
 }
 
 void RewardsServiceImpl::SetPublisherMinVisits(unsigned int visits) const {
   bat_ledger_->SetPublisherMinVisits(visits);
 }
 
-bool RewardsServiceImpl::GetPublisherAllowNonVerified() const {
-  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-  bool allowed;
-  bat_ledger_->GetPublisherAllowNonVerified(&allowed);
-  return allowed;
+void RewardsServiceImpl::GetPublisherAllowNonVerified(
+    const GetPublisherAllowNonVerifiedCallback& callback) {
+  bat_ledger_->GetPublisherAllowNonVerified(callback);
 }
 
 void RewardsServiceImpl::SetPublisherAllowNonVerified(bool allow) const {
   bat_ledger_->SetPublisherAllowNonVerified(allow);
 }
 
-bool RewardsServiceImpl::GetPublisherAllowVideos() const {
-  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-  bool allowed;
-  bat_ledger_->GetPublisherAllowVideos(&allowed);
-  return allowed;
+void RewardsServiceImpl::GetPublisherAllowVideos(
+    const GetPublisherAllowVideosCallback& callback) {
+  bat_ledger_->GetPublisherAllowVideos(callback);
 }
 
 void RewardsServiceImpl::SetPublisherAllowVideos(bool allow) const {
@@ -1190,11 +1202,9 @@ void RewardsServiceImpl::SetUserChangedContribution() const {
   bat_ledger_->SetUserChangedContribution();
 }
 
-bool RewardsServiceImpl::GetAutoContribute() const {
-  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-  bool auto_contribute;
-  bat_ledger_->GetAutoContribute(&auto_contribute);
-  return auto_contribute;
+void RewardsServiceImpl::GetAutoContribute(
+    const GetAutoContributeCallback& callback) {
+  bat_ledger_->GetAutoContribute(callback);
 }
 
 void RewardsServiceImpl::SetAutoContribute(bool enabled) const {
