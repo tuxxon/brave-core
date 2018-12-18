@@ -285,8 +285,9 @@ void BatLedgerImpl::GetPublisherActivityFromUrl(uint64_t window_id,
 void BatLedgerImpl::OnGetPublisherBanner(
     CallbackHolder<GetPublisherBannerCallback>* holder,
     std::unique_ptr<ledger::PublisherBanner> banner) {
+  std::string json_banner = banner.get() ? banner->ToJson() : "";
   if (holder->is_valid())
-    std::move(holder->get()).Run(banner->ToJson());
+    std::move(holder->get()).Run(json_banner);
   delete holder;
 }
 

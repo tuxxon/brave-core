@@ -240,8 +240,9 @@ void LedgerClientMojoProxy::OnSavePublisherInfo(
     CallbackHolder<SavePublisherInfoCallback>* holder,
     ledger::Result result,
     std::unique_ptr<ledger::PublisherInfo> info) {
+  std::string json_info = info.get() ? info->ToJson() : "";
   if (holder->is_valid())
-    std::move(holder->get()).Run(ToMojomResult(result), info->ToJson());
+    std::move(holder->get()).Run(ToMojomResult(result), json_info);
   delete holder;
 }
 
@@ -262,8 +263,9 @@ void LedgerClientMojoProxy::OnLoadPublisherInfo(
     CallbackHolder<LoadPublisherInfoCallback>* holder,
     ledger::Result result,
     std::unique_ptr<ledger::PublisherInfo> info) {
+  std::string json_info = info.get() ? info->ToJson() : "";
   if (holder->is_valid())
-    std::move(holder->get()).Run(ToMojomResult(result), info->ToJson());
+    std::move(holder->get()).Run(ToMojomResult(result), json_info);
   delete holder;
 }
 
@@ -313,8 +315,9 @@ void LedgerClientMojoProxy::OnLoadMediaPublisherInfo(
     CallbackHolder<LoadMediaPublisherInfoCallback>* holder,
     ledger::Result result,
     std::unique_ptr<ledger::PublisherInfo> info) {
+  std::string json_info = info.get() ? info->ToJson() : "";
   if (holder->is_valid())
-    std::move(holder->get()).Run(ToMojomResult(result), info->ToJson());
+    std::move(holder->get()).Run(ToMojomResult(result), json_info);
   delete holder;
 }
 
