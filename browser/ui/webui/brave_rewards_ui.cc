@@ -87,6 +87,13 @@ class RewardsDOMHandler : public WebUIMessageHandler,
   void OnGetContributionAmount(double amount);
   void OnGetAddresses(const std::map<std::string, std::string>& addresses);
   void OnGetNumExcludedSites(const std::string& publisher_id, uint32_t num);
+  void OnGetAutoContributeProps(
+      int error_code,
+      std::unique_ptr<brave_rewards::WalletProperties> wallet_properties,
+      std::unique_ptr<brave_rewards::AutoContributeProps> auto_contri_props);
+  void OnGetReconcileStamp(uint64_t reconcile_stamp);
+  void OnAutoContributePropsReady(
+      std::unique_ptr<brave_rewards::AutoContributeProps> auto_contri_props);
 
   // RewardsServiceObserver implementation
   void OnWalletInitialized(brave_rewards::RewardsService* rewards_service,
@@ -295,22 +302,22 @@ void RewardsDOMHandler::OnWalletInitialized(
     web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.walletCreateFailed");
 }
 
-void RewardsDOMHandler::OnWalletProperties(
-    brave_rewards::RewardsService* rewards_service,
+void RewardsDOMHandler::OnGetAutoContributeProps(
     int error_code,
-    std::unique_ptr<brave_rewards::WalletProperties> wallet_properties) {
+    std::unique_ptr<brave_rewards::WalletProperties> wallet_properties,
+    std::unique_ptr<brave_rewards::AutoContributeProps> auto_contri_props) {
   if (web_ui()->CanCallJavascript()) {
     base::DictionaryValue values;
     values.SetBoolean("enabledContribute",
-      rewards_service->GetAutoContribute());
+        auto_contri_props->enabled_contribute);
     values.SetInteger("contributionMinTime",
-      rewards_service->GetPublisherMinVisitTime());
+        auto_contri_props->contribution_min_time);
     values.SetInteger("contributionMinVisits",
-      rewards_service->GetPublisherMinVisits());
+        auto_contri_props->contribution_min_visits);
     values.SetBoolean("contributionNonVerified",
-      rewards_service->GetPublisherAllowNonVerified());
+        auto_contri_props->contribution_non_verified);
     values.SetBoolean("contributionVideos",
-      rewards_service->GetPublisherAllowVideos());
+        auto_contri_props->contribution_videos);
 
     auto ui_values = std::make_unique<base::DictionaryValue>();
 
@@ -363,6 +370,16 @@ void RewardsDOMHandler::OnWalletProperties(
 
     web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.walletProperties", result);
   }
+}
+
+void RewardsDOMHandler::OnWalletProperties(
+    brave_rewards::RewardsService* rewards_service,
+    int error_code,
+    std::unique_ptr<brave_rewards::WalletProperties> wallet_properties) {
+  rewards_service->GetAutoContributeProps(
+      base::Bind(&RewardsDOMHandler::OnGetAutoContributeProps,
+        weak_factory_.GetWeakPtr(), error_code,
+        base::Passed(std::move(wallet_properties))));
 }
 
 void RewardsDOMHandler::OnGrant(
@@ -480,12 +497,19 @@ void RewardsDOMHandler::OnGrantFinish(
   }
 }
 
-void RewardsDOMHandler::GetReconcileStamp(const base::ListValue* args) {
-  if (rewards_service_ && web_ui()->CanCallJavascript()) {
-    std::string stamp = std::to_string(rewards_service_->GetReconcileStamp());
-
-    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.reconcileStamp", base::Value(stamp));
+void RewardsDOMHandler::OnGetReconcileStamp(uint64_t reconcile_stamp) {
+  if (web_ui()->CanCallJavascript()) {
+    std::string stamp = std::to_string(reconcile_stamp);
+    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.reconcileStamp",
+        base::Value(stamp));
   }
+}
+
+void RewardsDOMHandler::GetReconcileStamp(const base::ListValue* args) {
+  if (rewards_service_)
+    rewards_service_->GetReconcileStamp(base::Bind(
+          &RewardsDOMHandler::OnGetReconcileStamp,
+          weak_factory_.GetWeakPtr()));
 }
 
 void RewardsDOMHandler::OnGetAddresses(
@@ -507,12 +531,19 @@ void RewardsDOMHandler::GetAddresses(const base::ListValue* args) {
           &RewardsDOMHandler::OnGetAddresses, weak_factory_.GetWeakPtr()));
 }
 
-void RewardsDOMHandler::OnContentSiteUpdated(brave_rewards::RewardsService* rewards_service) {
-  rewards_service_->GetCurrentContributeList(
-      0,
-      0,
+void RewardsDOMHandler::OnAutoContributePropsReady(
+    std::unique_ptr<brave_rewards::AutoContributeProps> props) {
+  rewards_service_->GetCurrentContributeList(0, 0,
+      props->contribution_min_time, props->reconcile_stamp,
       base::Bind(&RewardsDOMHandler::OnGetCurrentContributeList,
-                 weak_factory_.GetWeakPtr()));
+        weak_factory_.GetWeakPtr()));
+}
+
+void RewardsDOMHandler::OnContentSiteUpdated(
+    brave_rewards::RewardsService* rewards_service) {
+  rewards_service_->GetAutoContributeProps(
+      base::Bind(&RewardsDOMHandler::OnAutoContributePropsReady,
+        weak_factory_.GetWeakPtr()));
 }
 
 void RewardsDOMHandler::OnGetNumExcludedSites(const std::string& publisher_id,

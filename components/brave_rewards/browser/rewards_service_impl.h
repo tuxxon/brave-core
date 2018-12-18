@@ -87,6 +87,8 @@ class RewardsServiceImpl : public RewardsService,
   void GetCurrentContributeList(
       uint32_t start,
       uint32_t limit,
+      uint64_t min_visit_time,
+      uint64_t reconcile_stamp,
       const GetCurrentContributeListCallback& callback) override;
   void OnLoad(SessionID tab_id, const GURL& url) override;
   void OnUnload(SessionID tab_id) override;
@@ -106,13 +108,18 @@ class RewardsServiceImpl : public RewardsService,
                   const GURL& referrer,
                   const std::string& post_data) override;
   std::string URIEncode(const std::string& value) override;
-  uint64_t GetReconcileStamp() const override;
+  void GetReconcileStamp(const GetReconcileStampCallback& callback) override;
   void GetAddresses(const GetAddressesCallback& callback) override;
-  bool GetAutoContribute() const override;
-  uint64_t GetPublisherMinVisitTime() const override;
-  unsigned int GetPublisherMinVisits() const override;
-  bool GetPublisherAllowNonVerified() const override;
-  bool GetPublisherAllowVideos() const override;
+  void GetAutoContribute(
+      const GetAutoContributeCallback& callback) override;
+  void GetPublisherMinVisitTime(
+      const GetPublisherMinVisitTimeCallback& callback) override;
+  void GetPublisherMinVisits(
+      const GetPublisherMinVisitsCallback& callback) override;
+  void GetPublisherAllowNonVerified(
+      const GetPublisherAllowNonVerifiedCallback& callback) override;
+  void GetPublisherAllowVideos(
+      const GetPublisherAllowVideosCallback& callback) override;
   void LoadMediaPublisherInfo(
       const std::string& media_key,
       ledger::PublisherInfoCallback callback) override;
@@ -142,6 +149,8 @@ class RewardsServiceImpl : public RewardsService,
   void OnDonate(const std::string& publisher_key, int amount, bool recurring,
       std::unique_ptr<brave_rewards::ContentSite> site) override;
   void SetLedgerClient(std::unique_ptr<ledger::Ledger> new_ledger) override;
+  void GetAutoContributeProps(
+      const GetAutoContributePropsCallback& callback) override;
 
  private:
   friend void RunIOTaskCallback(
@@ -313,6 +322,9 @@ class RewardsServiceImpl : public RewardsService,
   void OnGetAddresses(
       const GetAddressesCallback& callback,
       const base::flat_map<std::string, std::string>& addresses);
+  void OnGetAutoContributeProps(
+      const GetAutoContributePropsCallback& callback,
+      const std::string& json_props);
 
   Profile* profile_;  // NOT OWNED
   mojo::AssociatedBinding<bat_ledger::mojom::BatLedgerClient>

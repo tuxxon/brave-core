@@ -27,6 +27,8 @@ class BatLedgerImpl : public mojom::BatLedger,
     void CreateWallet() override;
     void FetchWalletProperties() override;
 
+    void GetAutoContributeProps(
+        GetAutoContributePropsCallback callback) override;
     void GetPublisherMinVisitTime(
         GetPublisherMinVisitTimeCallback callback) override;
     void GetPublisherMinVisits(

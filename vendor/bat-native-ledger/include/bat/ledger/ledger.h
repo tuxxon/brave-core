@@ -10,6 +10,7 @@
 #include <string>
 
 #include "bat/ledger/export.h"
+#include "bat/ledger/auto_contribute_props.h"
 #include "bat/ledger/ledger_client.h"
 #include "bat/ledger/publisher_info.h"
 #include "bat/ledger/media_publisher_info.h"
@@ -167,6 +168,7 @@ class LEDGER_EXPORT Ledger {
                               int year,
                               ledger::BalanceReportInfo* report_info) const = 0;
   virtual std::map<std::string, ledger::BalanceReportInfo> GetAllBalanceReports() const = 0;
+  virtual void GetAutoContributeProps(ledger::AutoContributeProps& props) = 0;
 
   virtual void RecoverWallet(const std::string& passPhrase) const = 0;
   virtual void SaveMediaVisit(const std::string& publisher_id,

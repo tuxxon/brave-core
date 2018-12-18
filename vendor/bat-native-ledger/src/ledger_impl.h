@@ -101,6 +101,7 @@ class LedgerImpl : public ledger::Ledger,
                         int year,
                         ledger::BalanceReportInfo* report_info) const override;
   std::map<std::string, ledger::BalanceReportInfo> GetAllBalanceReports() const override;
+  void GetAutoContributeProps(ledger::AutoContributeProps& props) override;
 
   void SaveLedgerState(const std::string& data);
   void SavePublisherState(const std::string& data,
