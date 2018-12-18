@@ -81,7 +81,8 @@ class RewardsServiceImpl : public RewardsService,
   void SolveGrantCaptcha(const std::string& solution) const override;
   void GetWalletPassphrase(
       const GetWalletPassphraseCallback& callback) override;
-  unsigned int GetNumExcludedSites() const override;
+  void GetNumExcludedSites(
+      const GetNumExcludedSitesCallback& callback) override;
   void RecoverWallet(const std::string passPhrase) const override;
   void GetCurrentContributeList(
       uint32_t start,

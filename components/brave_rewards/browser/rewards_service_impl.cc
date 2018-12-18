@@ -1082,11 +1082,9 @@ void RewardsServiceImpl::GetWalletPassphrase(
   bat_ledger_->GetWalletPassphrase(callback);
 }
 
-unsigned int RewardsServiceImpl::GetNumExcludedSites() const {
-  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-  uint32_t num_excluded_sites;
-  bat_ledger_->GetNumExcludedSites(&num_excluded_sites);
-  return num_excluded_sites;
+void RewardsServiceImpl::GetNumExcludedSites(
+    const GetNumExcludedSitesCallback& callback) {
+  bat_ledger_->GetNumExcludedSites(callback);
 }
 
 void RewardsServiceImpl::RecoverWallet(const std::string passPhrase) const {

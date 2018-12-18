@@ -47,6 +47,7 @@ using GetWalletPassphraseCallback = base::Callback<void(const std::string&)>;
 using GetContributionAmountCallback = base::Callback<void(double)>;
 using GetAddressesCallback = base::Callback<void(
     const std::map<std::string, std::string>&)>;
+using GetNumExcludedSitesCallback = base::Callback<void(uint32_t)>;
 
 class RewardsService : public KeyedService {
  public:
@@ -64,7 +65,8 @@ class RewardsService : public KeyedService {
   virtual void SolveGrantCaptcha(const std::string& solution) const = 0;
   virtual void GetWalletPassphrase(
       const GetWalletPassphraseCallback& callback) = 0;
-  virtual unsigned int GetNumExcludedSites() const = 0;
+  virtual void GetNumExcludedSites(
+      const GetNumExcludedSitesCallback& callback) = 0;
   virtual void RecoverWallet(const std::string passPhrase) const = 0;
   virtual void ExcludePublisher(const std::string publisherKey) const = 0;
   virtual void RestorePublishers() = 0;

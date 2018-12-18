@@ -86,6 +86,7 @@ class RewardsDOMHandler : public WebUIMessageHandler,
   void OnGetWalletPassphrase(const std::string& pass);
   void OnGetContributionAmount(double amount);
   void OnGetAddresses(const std::map<std::string, std::string>& addresses);
+  void OnGetNumExcludedSites(const std::string& publisher_id, uint32_t num);
 
   // RewardsServiceObserver implementation
   void OnWalletInitialized(brave_rewards::RewardsService* rewards_service,
@@ -514,17 +515,26 @@ void RewardsDOMHandler::OnContentSiteUpdated(brave_rewards::RewardsService* rewa
                  weak_factory_.GetWeakPtr()));
 }
 
-void RewardsDOMHandler::OnExcludedSitesChanged(brave_rewards::RewardsService* rewards_service,
-                                               std::string publisher_id) {
-  if (rewards_service_ && web_ui()->CanCallJavascript()) {
+void RewardsDOMHandler::OnGetNumExcludedSites(const std::string& publisher_id,
+    uint32_t num) {
+  if (web_ui()->CanCallJavascript()) {
     base::DictionaryValue excludedSitesInfo;
-    int num = rewards_service_->GetNumExcludedSites();
-
     excludedSitesInfo.SetString("num", std::to_string(num));
     excludedSitesInfo.SetString("publisherKey", publisher_id);
 
-    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.numExcludedSites", excludedSitesInfo);
+    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.numExcludedSites",
+        excludedSitesInfo);
   }
+}
+
+void RewardsDOMHandler::OnExcludedSitesChanged(
+    brave_rewards::RewardsService* rewards_service,
+    std::string publisher_id) {
+  if (rewards_service_)
+    rewards_service_->GetNumExcludedSites(base::Bind(
+          &RewardsDOMHandler::OnGetNumExcludedSites,
+          weak_factory_.GetWeakPtr(),
+          publisher_id));
 }
 
 void RewardsDOMHandler::OnNotificationAdded(

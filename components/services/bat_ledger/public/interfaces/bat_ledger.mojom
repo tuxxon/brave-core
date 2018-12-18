@@ -56,7 +56,6 @@ interface BatLedger {
   FetchGrant(string lang, string payment_id);
   GetGrantCaptcha();
   GetWalletPassphrase() => (string wallet_passphrase);
-  [Sync]
   GetNumExcludedSites() => (uint32 num_excluded_sites);
   RecoverWallet(string passPhrase);
   SolveGrantCaptcha(string solution);
