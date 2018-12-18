@@ -442,6 +442,15 @@ bool LedgerImpl::GetAutoContribute() const {
   return bat_state_->GetAutoContribute();
 }
 
+std::map<std::string, std::string> LedgerImpl::GetAddresses() {
+  std::map<std::string, std::string> addresses;
+  addresses.emplace("BAT", GetBATAddress());
+  addresses.emplace("BTC", GetBTCAddress());
+  addresses.emplace("ETH", GetETHAddress());
+  addresses.emplace("LTC", GetLTCAddress());
+  return addresses;
+}
+
 const std::string& LedgerImpl::GetBATAddress() const {
   return bat_state_->GetBATAddress();
 }

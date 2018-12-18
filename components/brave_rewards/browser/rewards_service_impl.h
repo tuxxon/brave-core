@@ -106,7 +106,7 @@ class RewardsServiceImpl : public RewardsService,
                   const std::string& post_data) override;
   std::string URIEncode(const std::string& value) override;
   uint64_t GetReconcileStamp() const override;
-  std::map<std::string, std::string> GetAddresses() const override;
+  void GetAddresses(const GetAddressesCallback& callback) override;
   bool GetAutoContribute() const override;
   uint64_t GetPublisherMinVisitTime() const override;
   unsigned int GetPublisherMinVisits() const override;
@@ -309,6 +309,9 @@ class RewardsServiceImpl : public RewardsService,
       const base::flat_map<std::string, std::string>& json_reports);
   void OnGetCurrentBalanceReport(
       bool success, const std::string& json_report);
+  void OnGetAddresses(
+      const GetAddressesCallback& callback,
+      const base::flat_map<std::string, std::string>& addresses);
 
   Profile* profile_;  // NOT OWNED
   mojo::AssociatedBinding<bat_ledger::mojom::BatLedgerClient>

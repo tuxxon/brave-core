@@ -85,6 +85,7 @@ class RewardsDOMHandler : public WebUIMessageHandler,
   void SetBackupCompleted(const base::ListValue* args);
   void OnGetWalletPassphrase(const std::string& pass);
   void OnGetContributionAmount(double amount);
+  void OnGetAddresses(const std::map<std::string, std::string>& addresses);
 
   // RewardsServiceObserver implementation
   void OnWalletInitialized(brave_rewards::RewardsService* rewards_service,
@@ -486,18 +487,23 @@ void RewardsDOMHandler::GetReconcileStamp(const base::ListValue* args) {
   }
 }
 
-void RewardsDOMHandler::GetAddresses(const base::ListValue* args) {
-  if (rewards_service_ && web_ui()->CanCallJavascript()) {
-    std::map<std::string, std::string> addresses = rewards_service_->GetAddresses();
-
+void RewardsDOMHandler::OnGetAddresses(
+    const std::map<std::string, std::string>& addresses) {
+  if (web_ui()->CanCallJavascript()) {
     base::DictionaryValue data;
-    data.SetString("BAT", addresses["BAT"]);
-    data.SetString("BTC", addresses["BTC"]);
-    data.SetString("ETH", addresses["ETH"]);
-    data.SetString("LTC", addresses["LTC"]);
+    data.SetString("BAT", addresses.at("BAT"));
+    data.SetString("BTC", addresses.at("BTC"));
+    data.SetString("ETH", addresses.at("ETH"));
+    data.SetString("LTC", addresses.at("LTC"));
 
     web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.addresses", data);
   }
+}
+
+void RewardsDOMHandler::GetAddresses(const base::ListValue* args) {
+  if (rewards_service_)
+    rewards_service_->GetAddresses(base::Bind(
+          &RewardsDOMHandler::OnGetAddresses, weak_factory_.GetWeakPtr()));
 }
 
 void RewardsDOMHandler::OnContentSiteUpdated(brave_rewards::RewardsService* rewards_service) {

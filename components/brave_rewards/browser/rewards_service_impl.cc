@@ -1134,24 +1134,14 @@ uint64_t RewardsServiceImpl::GetReconcileStamp() const {
   return reconcile_stamp;
 }
 
-std::map<std::string, std::string> RewardsServiceImpl::GetAddresses() const {
-  std::map<std::string, std::string> addresses;
-  std::string bat_address;
-  std::string btc_address;
-  std::string eth_address;
-  std::string ltc_address;
-  {
-    mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-    bat_ledger_->GetBATAddress(&bat_address);
-    bat_ledger_->GetBTCAddress(&btc_address);
-    bat_ledger_->GetETHAddress(&eth_address);
-    bat_ledger_->GetLTCAddress(&ltc_address);
-  }
-  addresses.emplace("BAT", bat_address);
-  addresses.emplace("BTC", btc_address);
-  addresses.emplace("ETH", eth_address);
-  addresses.emplace("LTC", ltc_address);
-  return addresses;
+void RewardsServiceImpl::OnGetAddresses(const GetAddressesCallback& callback,
+    const base::flat_map<std::string, std::string>& addresses) {
+  callback.Run(mojo::FlatMapToMap(addresses));
+}
+
+void RewardsServiceImpl::GetAddresses(const GetAddressesCallback& callback) {
+  bat_ledger_->GetAddresses(base::BindOnce(&RewardsServiceImpl::OnGetAddresses,
+        AsWeakPtr(), callback));
 }
 
 void RewardsServiceImpl::SetRewardsMainEnabled(bool enabled) const {

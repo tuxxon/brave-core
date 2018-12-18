@@ -144,6 +144,7 @@ class LEDGER_EXPORT Ledger {
                               int year,
                               const ledger::BalanceReportInfo& report_info) = 0;
 
+  virtual std::map<std::string, std::string> GetAddresses() = 0;
   virtual const std::string& GetBATAddress() const = 0;
   virtual const std::string& GetBTCAddress() const = 0;
   virtual const std::string& GetETHAddress() const = 0;
