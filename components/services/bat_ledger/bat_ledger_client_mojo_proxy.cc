@@ -96,8 +96,8 @@ void BatLedgerClientMojoProxy::OnWalletInitialized(ledger::Result result) {
 
 void BatLedgerClientMojoProxy::OnWalletProperties(ledger::Result result,
     std::unique_ptr<ledger::WalletInfo> info) {
-  bat_ledger_client_->OnWalletProperties(ToMojomResult(result),
-      info->ToJson());
+  std::string json_info = info.get() ? info->ToJson() : "";
+  bat_ledger_client_->OnWalletProperties(ToMojomResult(result), json_info);
 }
 
 void BatLedgerClientMojoProxy::OnGrant(ledger::Result result,
@@ -229,7 +229,8 @@ void OnSavePublisherInfo(const ledger::PublisherInfoCallback& callback,
 void BatLedgerClientMojoProxy::SavePublisherInfo(
     std::unique_ptr<ledger::PublisherInfo> publisher_info,
     ledger::PublisherInfoCallback callback) {
-  bat_ledger_client_->SavePublisherInfo(publisher_info->ToJson(),
+  std::string json_info = publisher_info.get() ? publisher_info->ToJson() : "";
+  bat_ledger_client_->SavePublisherInfo(json_info,
       base::BindOnce(&OnSavePublisherInfo, std::move(callback)));
 }
 
@@ -297,8 +298,9 @@ void BatLedgerClientMojoProxy::OnExcludedSitesChanged(
 void BatLedgerClientMojoProxy::OnPublisherActivity(ledger::Result result,
     std::unique_ptr<ledger::PublisherInfo> info,
     uint64_t windowId) {
+  std::string json_info = info.get() ? info->ToJson() : "";
   bat_ledger_client_->OnPublisherActivity(ToMojomResult(result),
-      info->ToJson(), windowId);
+      json_info, windowId);
 }
 
 void OnFetchFavIcon(const ledger::FetchIconCallback& callback,
