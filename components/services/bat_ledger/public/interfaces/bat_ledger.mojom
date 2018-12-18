@@ -61,13 +61,10 @@ interface BatLedger {
   RecoverWallet(string passPhrase);
   SolveGrantCaptcha(string solution);
 
-  [Sync]
+  GetAddresses() => (map<string, string> addresses);
   GetBATAddress() => (string address);
-  [Sync]
   GetBTCAddress() => (string address);
-  [Sync]
   GetETHAddress() => (string address);
-  [Sync]
   GetLTCAddress() => (string address);
 
   SetRewardsMainEnabled(bool enabled);

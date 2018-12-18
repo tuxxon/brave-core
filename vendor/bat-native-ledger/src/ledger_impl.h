@@ -83,6 +83,7 @@ class LedgerImpl : public ledger::Ledger,
                         int year,
                         const ledger::BalanceReportInfo& report_info) override;
 
+  std::map<std::string, std::string> GetAddresses() override;
   const std::string& GetBATAddress() const override;
   const std::string& GetBTCAddress() const override;
   const std::string& GetETHAddress() const override;

@@ -189,6 +189,10 @@ void BatLedgerImpl::SolveGrantCaptcha(const std::string& solution) {
   ledger_->SolveGrantCaptcha(solution);
 }
 
+void BatLedgerImpl::GetAddresses(GetAddressesCallback callback) {
+  std::move(callback).Run(mojo::MapToFlatMap(ledger_->GetAddresses()));
+}
+
 void BatLedgerImpl::GetBATAddress(GetBATAddressCallback callback) {
   std::move(callback).Run(ledger_->GetBATAddress());
 }
