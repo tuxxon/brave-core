@@ -94,6 +94,7 @@ class RewardsDOMHandler : public WebUIMessageHandler,
   void OnGetReconcileStamp(uint64_t reconcile_stamp);
   void OnAutoContributePropsReady(
       std::unique_ptr<brave_rewards::AutoContributeProps> auto_contri_props);
+  void OnIsWalletCreated(bool created);
 
   // RewardsServiceObserver implementation
   void OnWalletInitialized(brave_rewards::RewardsService* rewards_service,
@@ -676,12 +677,17 @@ void RewardsDOMHandler::GetBalanceReports(const base::ListValue* args) {
   GetAllBalanceReports();
 }
 
-void RewardsDOMHandler::WalletExists(const base::ListValue* args) {
-  if (rewards_service_ && web_ui()->CanCallJavascript()) {
-    bool exist = rewards_service_->IsWalletCreated();
+void RewardsDOMHandler::OnIsWalletCreated(bool created) {
+  if (web_ui()->CanCallJavascript())
+    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.walletExists",
+        base::Value(created));
+}
 
-    web_ui()->CallJavascriptFunctionUnsafe("brave_rewards.walletExists", base::Value(exist));
-  }
+void RewardsDOMHandler::WalletExists(const base::ListValue* args) {
+  if (rewards_service_)
+    rewards_service_->IsWalletCreated(
+        base::Bind(&RewardsDOMHandler::OnIsWalletCreated,
+          weak_factory_.GetWeakPtr()));
 }
 
 void RewardsDOMHandler::OnGetContributionAmount(double amount) {

@@ -54,7 +54,6 @@
 #include "content_site.h"
 #include "extensions/buildflags/buildflags.h"
 #include "mojo/public/cpp/bindings/map.h"
-#include "mojo/public/cpp/bindings/sync_call_restrictions.h"
 #include "net/base/escape.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "net/base/url_util.h"
@@ -645,7 +644,8 @@ void RewardsServiceImpl::OnGetAutoContributeProps(
   ledger::AutoContributeProps props;
   props.loadFromJson(json_props);
 
-  std::unique_ptr<brave_rewards::AutoContributeProps> auto_contri_props;
+  auto auto_contri_props =
+    std::make_unique<brave_rewards::AutoContributeProps>();
   auto_contri_props->enabled_contribute = props.enabled_contribute;
   auto_contri_props->contribution_min_time = props.contribution_min_time;
   auto_contri_props->contribution_min_visits = props.contribution_min_visits;
@@ -1332,11 +1332,9 @@ void RewardsServiceImpl::GetCurrentBalanceReport() {
         AsWeakPtr()));
 }
 
-bool RewardsServiceImpl::IsWalletCreated() {
-  mojo::SyncCallRestrictions::ScopedAllowSyncCall allow_sync_call;
-  bool wallet_created;
-  bat_ledger_->IsWalletCreated(&wallet_created);
-  return wallet_created;
+void RewardsServiceImpl::IsWalletCreated(
+    const IsWalletCreatedCallback& callback) {
+  bat_ledger_->IsWalletCreated(callback);
 }
 
 void RewardsServiceImpl::GetPublisherActivityFromUrl(uint64_t windowId,

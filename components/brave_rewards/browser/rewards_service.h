@@ -57,6 +57,7 @@ using GetPublisherAllowNonVerifiedCallback = base::Callback<void(bool)>;
 using GetPublisherAllowVideosCallback = base::Callback<void(bool)>;
 using GetAutoContributeCallback = base::Callback<void(bool)>;
 using GetReconcileStampCallback = base::Callback<void(uint64_t)>;
+using IsWalletCreatedCallback = base::Callback<void(bool)>;
 
 class RewardsService : public KeyedService {
  public:
@@ -124,7 +125,7 @@ class RewardsService : public KeyedService {
   virtual void GetAllBalanceReports(
       const GetAllBalanceReportsCallback& callback) = 0;
   virtual void GetCurrentBalanceReport() = 0;
-  virtual bool IsWalletCreated() = 0;
+  virtual void IsWalletCreated(const IsWalletCreatedCallback& callback) = 0;
   virtual void GetPublisherActivityFromUrl(uint64_t windowId, const std::string& url, const std::string& favicon_url) = 0;
   virtual void GetContributionAmount(
       const GetContributionAmountCallback& callback) = 0;
