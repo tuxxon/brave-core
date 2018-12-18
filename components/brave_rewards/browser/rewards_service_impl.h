@@ -129,7 +129,7 @@ class RewardsServiceImpl : public RewardsService,
   void GetAllBalanceReports(
       const GetAllBalanceReportsCallback& callback) override;
   void GetCurrentBalanceReport() override;
-  bool IsWalletCreated() override;
+  void IsWalletCreated(const IsWalletCreatedCallback& callback) override;
   void GetPublisherActivityFromUrl(uint64_t windowId, const std::string& url, const std::string& favicon_url) override;
   void GetContributionAmount(const GetContributionAmountCallback& callback) override;
   void GetPublisherBanner(const std::string& publisher_id) override;

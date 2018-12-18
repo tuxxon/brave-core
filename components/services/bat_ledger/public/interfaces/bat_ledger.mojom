@@ -75,7 +75,6 @@ interface BatLedger {
   GetAllBalanceReports() => (map<string, string> reports);
   GetBalanceReport(int32 month, int32 year) => (bool result, string report);
 
-  [Sync]
   IsWalletCreated() => (bool wallet_created);
 
   GetPublisherActivityFromUrl(uint64 window_id, string visit_data);
