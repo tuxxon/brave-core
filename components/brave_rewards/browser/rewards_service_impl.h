@@ -153,10 +153,6 @@ class RewardsServiceImpl : public RewardsService,
       const GetAutoContributePropsCallback& callback) override;
 
  private:
-  friend void RunIOTaskCallback(
-      base::WeakPtr<RewardsServiceImpl>,
-      std::function<void(void)>);
-
   const extensions::OneShotEvent& ready() const { return ready_; }
   void OnLedgerStateSaved(ledger::LedgerCallbackHandler* handler,
                           bool success);
@@ -258,7 +254,6 @@ class RewardsServiceImpl : public RewardsService,
       const ledger::URL_METHOD& method,
       ledger::LoadURLCallback callback) override;
 
-  void RunIOTask(std::unique_ptr<ledger::LedgerTaskRunner> task) override;
   void SetRewardsMainEnabled(bool enabled) const override;
   void SetPublisherMinVisitTime(uint64_t duration_in_seconds) const override;
   void SetPublisherMinVisits(unsigned int visits) const override;
@@ -293,8 +288,6 @@ class RewardsServiceImpl : public RewardsService,
                      const char* file,
                      int line,
                      const ledger::LogLevel log_level) const override;
-
-  void OnIOTaskComplete(std::function<void(void)> callback);
 
   // URLFetcherDelegate impl
   void OnURLFetchComplete(const net::URLFetcher* source) override;

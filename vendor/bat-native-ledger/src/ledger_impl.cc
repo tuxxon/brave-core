@@ -8,7 +8,6 @@
 #include <vector>
 
 #include "ledger_impl.h"
-#include "ledger_task_runner_impl.h"
 
 #include "bat_client.h"
 #include "bat_contribution.h"
@@ -295,12 +294,6 @@ void LedgerImpl::LoadURL(const std::string& url,
     ledger::LoadURLCallback callback) {
   ledger_client_->LoadURL(
       url, headers, content, contentType, method, callback);
-}
-
-void LedgerImpl::RunIOTask(ledger::LedgerTaskRunner::Task io_task) {
-  std::unique_ptr<LedgerTaskRunnerImpl> task_runner(
-      new LedgerTaskRunnerImpl(io_task));
-  ledger_client_->RunIOTask(std::move(task_runner));
 }
 
 std::string LedgerImpl::URIEncode(const std::string& value) {

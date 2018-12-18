@@ -987,29 +987,6 @@ void RewardsServiceImpl::OnURLFetchComplete(
   callback(response_code == 200, body, headers);
 }
 
-void RunIOTaskCallback(
-    base::WeakPtr<RewardsServiceImpl> rewards_service,
-    std::function<void(void)> callback) {
-  base::PostTaskWithTraits(FROM_HERE, {content::BrowserThread::UI},
-      base::BindOnce(&RewardsServiceImpl::OnIOTaskComplete,
-                      rewards_service,
-                      callback));
-}
-
-void RewardsServiceImpl::OnIOTaskComplete(std::function<void(void)> callback) {
-  callback();
-}
-
-void RewardsServiceImpl::RunIOTask(
-    std::unique_ptr<ledger::LedgerTaskRunner> task) {
-  ledger::LedgerTaskRunner::CallerThreadCallback callback =
-      std::bind(&RunIOTaskCallback, AsWeakPtr(), _1);
-
-  file_task_runner_->PostTask(FROM_HERE,
-      base::BindOnce(&ledger::LedgerTaskRunner::Run,
-          std::move(task), std::move(callback)));
-}
-
 void RewardsServiceImpl::TriggerOnWalletInitialized(int error_code) {
   for (auto& observer : observers_)
     observer.OnWalletInitialized(this, error_code);

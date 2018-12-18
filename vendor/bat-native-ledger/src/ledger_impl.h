@@ -14,7 +14,6 @@
 #include "bat/ledger/ledger_callback_handler.h"
 #include "bat/ledger/ledger_client.h"
 #include "bat_helper.h"
-#include "ledger_task_runner_impl.h"
 #include "logging.h"
 
 namespace braveledger_bat_client {
@@ -146,7 +145,6 @@ class LedgerImpl : public ledger::Ledger,
   void OnReconcileComplete(ledger::Result result,
                            const std::string& viewing_id,
                            const std::string& probi = "0");
-  void RunIOTask(LedgerTaskRunnerImpl::Task task);
   std::string URIEncode(const std::string& value) override;
   void SaveMediaVisit(const std::string& publisher_id,
                       const ledger::VisitData& visit_data,
