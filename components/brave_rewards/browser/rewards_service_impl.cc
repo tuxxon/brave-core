@@ -735,7 +735,6 @@ void RewardsServiceImpl::OnReconcileComplete(ledger::Result result,
 
 void RewardsServiceImpl::LoadLedgerState(
     ledger::LedgerCallbackHandler* handler) {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
   base::PostTaskAndReplyWithResult(file_task_runner_.get(), FROM_HERE,
       base::Bind(&LoadStateOnFileTaskRunner, ledger_state_path_),
       base::Bind(&RewardsServiceImpl::OnLedgerStateLoaded,
@@ -746,7 +745,6 @@ void RewardsServiceImpl::LoadLedgerState(
 void RewardsServiceImpl::OnLedgerStateLoaded(
     ledger::LedgerCallbackHandler* handler,
     const std::string& data) {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
   handler->OnLedgerStateLoaded(data.empty() ? ledger::Result::LEDGER_ERROR
                                             : ledger::Result::LEDGER_OK,
                                data);
@@ -757,7 +755,6 @@ void RewardsServiceImpl::OnLedgerStateLoaded(
 
 void RewardsServiceImpl::LoadPublisherState(
     ledger::LedgerCallbackHandler* handler) {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
   base::PostTaskAndReplyWithResult(file_task_runner_.get(), FROM_HERE,
       base::Bind(&LoadStateOnFileTaskRunner, publisher_state_path_),
       base::Bind(&RewardsServiceImpl::OnPublisherStateLoaded,
@@ -768,7 +765,6 @@ void RewardsServiceImpl::LoadPublisherState(
 void RewardsServiceImpl::OnPublisherStateLoaded(
     ledger::LedgerCallbackHandler* handler,
     const std::string& data) {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
   handler->OnPublisherStateLoaded(
       data.empty() ? ledger::Result::NO_PUBLISHER_STATE
                    : ledger::Result::LEDGER_OK,
@@ -1255,7 +1251,6 @@ void RewardsServiceImpl::OnTimer(uint32_t timer_id) {
 
 void RewardsServiceImpl::LoadPublisherList(
     ledger::LedgerCallbackHandler* handler) {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
   base::PostTaskAndReplyWithResult(file_task_runner_.get(), FROM_HERE,
                                    base::Bind(&LoadStateOnFileTaskRunner, publisher_list_path_),
                                    base::Bind(&RewardsServiceImpl::OnPublisherListLoaded,
@@ -1266,7 +1261,6 @@ void RewardsServiceImpl::LoadPublisherList(
 void RewardsServiceImpl::OnPublisherListLoaded(
     ledger::LedgerCallbackHandler* handler,
     const std::string& data) {
-  LOG(ERROR) << __PRETTY_FUNCTION__;
   handler->OnPublisherListLoaded(
       data.empty() ? ledger::Result::NO_PUBLISHER_LIST
                    : ledger::Result::LEDGER_OK,
