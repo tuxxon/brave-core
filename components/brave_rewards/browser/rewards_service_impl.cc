@@ -349,14 +349,13 @@ void RewardsServiceImpl::Init() {
   bat_ledger_->Initialize();
 }
 
-void RewardsServiceImpl::MaybeShowBackupNotification() {
+void RewardsServiceImpl::MaybeShowBackupNotification(uint64_t boot_stamp) {
   PrefService* pref_service = profile_->GetPrefs();
   bool user_has_funded = pref_service->GetBoolean(kRewardsUserHasFunded);
   bool backup_succeeded = pref_service->GetBoolean(kRewardsBackupSucceeded);
   if (user_has_funded && !backup_succeeded) {
     base::Time now = base::Time::Now();
-    base::Time boot_timestamp =
-        base::Time::FromDoubleT(ledger_->GetBootStamp());
+    base::Time boot_timestamp = base::Time::FromDoubleT(boot_stamp);
     base::TimeDelta backup_notification_frequency =
         pref_service->GetTimeDelta(kRewardsBackupNotificationFrequency);
     base::TimeDelta backup_notification_interval =
@@ -375,15 +374,18 @@ void RewardsServiceImpl::MaybeShowBackupNotification() {
   }
 }
 
-void RewardsServiceImpl::MaybeShowAddFundsNotification() {
+void RewardsServiceImpl::MaybeShowAddFundsNotification(
+    uint64_t reconcile_stamp) {
   // Show add funds notification if reconciliation will occur in the
   // next 3 days and balance is too low.
   base::Time now = base::Time::Now();
-  if (ledger_->GetReconcileStamp() - now.ToDoubleT() <
+  if (reconcile_stamp - now.ToDoubleT() <
       3 * base::Time::kHoursPerDay * base::Time::kSecondsPerHour) {
-    if (!HasSufficientBalanceToReconcile() &&
-        ShouldShowNotificationAddFunds()) {
-      ShowNotificationAddFunds();
+    if (ShouldShowNotificationAddFunds())
+      MaybeShowNotificationAddFunds();
+      //&&
+      //  !HasSufficientBalanceToReconcile()) {
+      //ShowNotificationAddFunds();
     }
   }
 }
@@ -640,7 +642,7 @@ void RewardsServiceImpl::OnWalletInitialized(ledger::Result result) {
   if (result == ledger::Result::WALLET_CREATED) {
     SetRewardsMainEnabled(true);
     SetAutoContribute(true);
-    StartNotificationTimers();
+    StartNotificationTimers(true);
     result = ledger::Result::LEDGER_OK;
   }
 
@@ -748,9 +750,9 @@ void RewardsServiceImpl::OnLedgerStateLoaded(
   handler->OnLedgerStateLoaded(data.empty() ? ledger::Result::LEDGER_ERROR
                                             : ledger::Result::LEDGER_OK,
                                data);
-  if (ledger_->GetRewardsMainEnabled()) {
-    StartNotificationTimers();
-  }
+  bat_ledger_->GetRewardsMainEnabled(
+      base::BindOnce(&RewardsServiceImpl::StartNotificationTimers,
+        AsWeakPtr()));
 }
 
 void RewardsServiceImpl::LoadPublisherState(
@@ -1739,7 +1741,9 @@ RewardsNotificationService* RewardsServiceImpl::GetNotificationService() const {
   return notification_service_.get();
 }
 
-void RewardsServiceImpl::StartNotificationTimers() {
+void RewardsServiceImpl::StartNotificationTimers(bool main_enabled) {
+  if (!main_enabled) return;
+
   // Startup timer, begins after 3-second delay.
   notification_startup_timer_ = std::make_unique<base::OneShotTimer>();
   notification_startup_timer_->Start(
@@ -1764,8 +1768,12 @@ void RewardsServiceImpl::StopNotificationTimers() {
 }
 
 void RewardsServiceImpl::OnNotificationTimerFired() {
-  MaybeShowBackupNotification();
-  MaybeShowAddFundsNotification();
+  bat_ledger_->GetBootStamp(
+      base::BindOnce(&RewardsServiceImpl::MaybeShowNotifications,
+        AsWeakPtr()));
+  GetReconcileStamp(
+      base::BindOnce(&RewardsServiceImpl::MaybeShowAddFundsNotification,
+        AsWeakPtr()));
 }
 
 bool RewardsServiceImpl::HasSufficientBalanceToReconcile() const {
