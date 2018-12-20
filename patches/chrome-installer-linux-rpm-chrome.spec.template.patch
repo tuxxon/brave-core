@@ -1,0 +1,20 @@
+diff --git a/chrome/installer/linux/rpm/chrome.spec.template b/chrome/installer/linux/rpm/chrome.spec.template
+index 55a35677b9c46a2038cea9ac8dedf40d31a679f4..6fc903660c1eb0dbd7fca31ff1a680181d351f3b 100644
+--- a/chrome/installer/linux/rpm/chrome.spec.template
++++ b/chrome/installer/linux/rpm/chrome.spec.template
+@@ -85,7 +85,6 @@ rm -rf "$RPM_BUILD_ROOT"
+ 
+ # Be explicit about the files we scatter throughout the system we don't
+ # accidentally "own" stuff that's not ours (crbug.com/123990).
+-/etc/cron.daily/@@PACKAGE@@
+ %ghost %attr(755,root,root) /usr/bin/@@PACKAGE_ORIG@@
+ /usr/bin/@@USR_BIN_SYMLINK_NAME@@
+ /usr/share/appdata/@@PACKAGE@@.appdata.xml
+@@ -158,7 +157,6 @@ fi
+ # not always running, which kind of defeats the purpose of having 'at' as a
+ # required LSB command.
+ service atd start
+-echo "sh /etc/cron.daily/@@PACKAGE@@" | at now + 2 minute > /dev/null 2>&1
+ 
+ CHANNEL=@@CHANNEL@@
+ case $CHANNEL in
