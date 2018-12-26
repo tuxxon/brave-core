@@ -43,6 +43,7 @@ public:
    std::unique_ptr<base::Value> ToValueArrOnly() const;
    std::string ToJson() const;
    size_t size() const { return devices_.size(); }
+   bool have_less_than_two() const { return size() < 2; }
    void FromJson(const std::string &str_json);
    void Merge(const SyncDevice& device, int action, bool* actually_merged);
 

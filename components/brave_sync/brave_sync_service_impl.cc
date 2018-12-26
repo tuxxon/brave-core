@@ -290,7 +290,9 @@ void BraveSyncServiceImpl::BackgroundSyncStarted(bool startup) {
   if (startup)
     bookmark_change_processor_->Start();
 
-  StartLoop();
+  const bool waiting_for_second_device =
+                            sync_prefs_->GetSyncDevices()->have_less_than_two();
+  StartLoop(waiting_for_second_device);
 }
 
 void BraveSyncServiceImpl::BackgroundSyncStopped(bool shutdown) {
@@ -469,6 +471,7 @@ void BraveSyncServiceImpl::OnResolvedPreferences(const RecordsList& records) {
   bool contains_only_one_device = false;
 
   auto sync_devices = sync_prefs_->GetSyncDevices();
+  bool waiting_for_second_device = sync_devices->have_less_than_two();
   for (const auto &record : records) {
     DCHECK(record->has_device() || record->has_sitesetting());
     if (record->has_device()) {
@@ -484,7 +487,7 @@ void BraveSyncServiceImpl::OnResolvedPreferences(const RecordsList& records) {
         (record->deviceId == this_device_id &&
           record->action == jslib::SyncRecord::Action::A_DELETE &&
           actually_merged);
-      contains_only_one_device = sync_devices->size() < 2 &&
+      contains_only_one_device = sync_devices->have_less_than_two() &&
         record->action == jslib::SyncRecord::Action::A_DELETE &&
           actually_merged;
     }
@@ -496,6 +499,11 @@ void BraveSyncServiceImpl::OnResolvedPreferences(const RecordsList& records) {
     ResetSyncInternal();
   if (contains_only_one_device)
     OnResetSync();
+
+  if (waiting_for_second_device && !sync_devices->have_less_than_two()) {
+    // Restart loop with 30 sec interval
+    StartLoop(false);
+  }
 }
 
 void BraveSyncServiceImpl::OnSyncPrefsChanged(const std::string& pref) {
@@ -610,10 +618,14 @@ void BraveSyncServiceImpl::SendDeviceSyncRecord(
 }
 
 static const int64_t kCheckUpdatesIntervalSec = 60;
+static const int64_t kCheckInitialUpdatesIntervalSec = 1;
 
-void BraveSyncServiceImpl::StartLoop() {
+void BraveSyncServiceImpl::StartLoop(const bool waiting_for_second_device) {
   timer_->Start(FROM_HERE,
-                  base::TimeDelta::FromSeconds(kCheckUpdatesIntervalSec),
+                  base::TimeDelta::FromSeconds(
+                    waiting_for_second_device ?
+                        kCheckInitialUpdatesIntervalSec :
+                        kCheckUpdatesIntervalSec),
                   this,
                   &BraveSyncServiceImpl::LoopProc);
 }
