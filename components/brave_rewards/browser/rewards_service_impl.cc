@@ -2004,8 +2004,10 @@ void RewardsServiceImpl::OnNotificationTimerFired() {
         AsWeakPtr()));
 }
 
-bool RewardsServiceImpl::HasSufficientBalanceToReconcile() const {
-  return (ledger_->GetBalance() >= ledger_->GetContributionAmount());
+void RewardsServiceImpl::MaybeShowNotificationAddFunds() {
+  bat_ledger_->HasSufficientBalanceToReconcile(
+      base::BindOnce(&RewardsServiceImpl::ShowNotificationAddFunds,
+        AsWeakPtr()));
 }
 
 bool RewardsServiceImpl::ShouldShowNotificationAddFunds() const {
@@ -2014,7 +2016,9 @@ bool RewardsServiceImpl::ShouldShowNotificationAddFunds() const {
   return (next_time.is_null() || base::Time::Now() > next_time);
 }
 
-void RewardsServiceImpl::ShowNotificationAddFunds() {
+void RewardsServiceImpl::ShowNotificationAddFunds(bool sufficient) {
+  if (sufficient) return;
+
   base::Time next_time = base::Time::Now() + base::TimeDelta::FromDays(3);
   profile_->GetPrefs()->SetTime(kRewardsAddFundsNotification, next_time);
   RewardsNotificationService::RewardsNotificationArgs args;

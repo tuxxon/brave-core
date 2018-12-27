@@ -119,6 +119,8 @@ class BatLedgerImpl : public mojom::BatLedger,
     void GetBootStamp(GetBootStampCallback callback) override;
     void GetRewardsMainEnabled(
         GetRewardsMainEnabledCallback callback) override;
+    void HasSufficientBalanceToReconcile(
+        HasSufficientBalanceToReconcileCallback callback) override;
 
   private:
     // workaround to pass base::OnceCallback into std::bind

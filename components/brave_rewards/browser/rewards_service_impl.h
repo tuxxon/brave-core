@@ -312,9 +312,9 @@ class RewardsServiceImpl : public RewardsService,
   void StopNotificationTimers();
   void OnNotificationTimerFired();
 
-  bool HasSufficientBalanceToReconcile() const;
+  void MaybeShowNotificationAddFunds();
   bool ShouldShowNotificationAddFunds() const;
-  void ShowNotificationAddFunds();
+  void ShowNotificationAddFunds(bool sufficient);
 
   // Mojo Proxy methods
   void OnPublisherBannerMojoProxy(const std::string& banner);

@@ -355,4 +355,9 @@ void BatLedgerImpl::GetRewardsMainEnabled(
   std::move(callback).Run(ledger_->GetRewardsMainEnabled());
 }
 
+void BatLedgerImpl::HasSufficientBalanceToReconcile(
+    HasSufficientBalanceToReconcileCallback callback) {
+  std::move(callback).Run(ledger_->HasSufficientBalanceToReconcile());
+}
+
 } // namespace bat_ledger

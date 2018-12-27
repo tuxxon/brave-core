@@ -280,6 +280,7 @@ class LedgerImpl : public ledger::Ledger,
 
   const braveledger_bat_helper::CurrentReconciles& GetCurrentReconciles() const;
   double GetDefaultContributionAmount() override;
+  bool HasSufficentBalanceToReconcile() override;
 
  private:
   void MakePayment(const ledger::PaymentData& payment_data) override;

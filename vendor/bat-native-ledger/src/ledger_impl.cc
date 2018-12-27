@@ -1066,4 +1066,8 @@ double LedgerImpl::GetDefaultContributionAmount() {
   return bat_state_->GetDefaultContributionAmount();
 }
 
+bool LedgerImpl::HasSufficentBalanceToReconcile() {
+  return GetBalance() >= GetContributionAmount();
+}
+
 }  // namespace bat_ledger

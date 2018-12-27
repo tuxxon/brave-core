@@ -95,6 +95,8 @@ interface BatLedger {
       uint64 window_id);
   GetBootStamp() => (uint64 boot_stamp);
   GetRewardsMainEnabled() => (bool main_enabled);
+
+  HasSufficientBalanceToReconcile() => (bool sufficient);
 };
 
 interface BatLedgerClient {
