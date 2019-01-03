@@ -49,7 +49,7 @@ class BatLedgerClientMojoProxy : public ledger::LedgerClient,
                          ledger::PublisherInfoCallback callback) override;
   void LoadPublisherInfo(ledger::ActivityInfoFilter filter,
                          ledger::PublisherInfoCallback callback) override;
-  void LoadPublisherInfoList(
+  void LoadPanelPublisherInfo(
       uint32_t start,
       uint32_t limit,
       ledger::ActivityInfoFilter filter,

@@ -337,7 +337,7 @@ void OnLoadPublisherInfoList(const ledger::PublisherInfoListCallback& callback,
   callback(list, next_record);
 }
 
-void BatLedgerClientMojoProxy::LoadPublisherInfoList(
+void BatLedgerClientMojoProxy::LoadPanelPublisherInfo(
     uint32_t start,
     uint32_t limit,
     ledger::ActivityInfoFilter filter,
@@ -347,7 +347,7 @@ void BatLedgerClientMojoProxy::LoadPublisherInfoList(
     return;
   }
 
-  bat_ledger_client_->LoadPublisherInfoList(start, limit, filter.ToJson(),
+  bat_ledger_client_->LoadPanelPublisherInfo(start, limit, filter.ToJson(),
       base::BindOnce(&OnLoadPublisherInfoList, std::move(callback)));
 }
 

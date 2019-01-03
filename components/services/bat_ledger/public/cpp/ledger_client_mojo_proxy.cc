@@ -293,7 +293,7 @@ void LedgerClientMojoProxy::OnLoadPublisherInfoList(
   delete holder;
 }
 
-void LedgerClientMojoProxy::LoadPublisherInfoList(uint32_t start,
+void LedgerClientMojoProxy::LoadPanelPublisherInfo(uint32_t start,
     uint32_t limit,
     const std::string& filter,
     LoadPublisherInfoListCallback callback) {
@@ -302,7 +302,7 @@ void LedgerClientMojoProxy::LoadPublisherInfoList(uint32_t start,
       AsWeakPtr(), std::move(callback));
   ledger::ActivityInfoFilter publisher_info_filter;
   publisher_info_filter.loadFromJson(filter);
-  ledger_client_->LoadPublisherInfoList(start, limit, publisher_info_filter,
+  ledger_client_->LoadPanelPublisherInfo(start, limit, publisher_info_filter,
       std::bind(LedgerClientMojoProxy::OnLoadPublisherInfoList,
         holder, _1, _2));
 }

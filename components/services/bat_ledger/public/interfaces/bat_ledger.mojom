@@ -121,7 +121,7 @@ interface BatLedgerClient {
   SavePublisherInfo(string publisher_info) => (int32 result,
       string publisher_info);
   LoadPublisherInfo(string filter) => (int32 result, string publisher_info);
-  LoadPublisherInfoList(uint32 start, uint32 limit, string filter) => (
+  LoadPanelPublisherInfo(uint32 start, uint32 limit, string filter) => (
       array<string> publisher_info_list, uint32 next_record);
   LoadMediaPublisherInfo(string media_key) => (int32 result,
       string publisher_info);

@@ -46,7 +46,7 @@ class LedgerClientMojoProxy : public mojom::BatLedgerClient,
       SavePublisherInfoCallback callback) override;
   void LoadPublisherInfo(const std::string& filter,
       LoadPublisherInfoCallback callback) override;
-  void LoadPublisherInfoList(uint32_t start, uint32_t limit,
+  void LoadPanelPublisherInfo(uint32_t start, uint32_t limit,
       const std::string& filter,
       LoadPublisherInfoListCallback callback) override;
   void LoadMediaPublisherInfo(const std::string& media_key,
