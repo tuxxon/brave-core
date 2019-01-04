@@ -526,7 +526,7 @@ TEST_F(BraveSyncServiceTest, OnDeleteDeviceWhenSelfDeleted) {
   auto resolved_record = SyncRecord::Clone(*records.at(0));
   resolved_record->action = jslib::SyncRecord::Action::A_DELETE;
   resolved_records.push_back(std::move(resolved_record));
-  EXPECT_CALL(*observer(), OnSyncStateChanged(sync_service())).Times(5);
+  EXPECT_CALL(*observer(), OnSyncStateChanged(sync_service())).Times(AtLeast(3));
   sync_service()->OnResolvedPreferences(resolved_records);
 
   auto devices_final = sync_service()->sync_prefs_->GetSyncDevices();
