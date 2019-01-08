@@ -19,6 +19,7 @@ class BraveActionIconWithBadgeImageSource : public IconWithBadgeImageSource {
   public:
     using IconWithBadgeImageSource::IconWithBadgeImageSource;
   private:
+    void Draw(gfx::Canvas* canvas) override;
     void PaintBadge(gfx::Canvas* canvas) override;
     gfx::Rect GetIconAreaRect() const override;
     DISALLOW_COPY_AND_ASSIGN(BraveActionIconWithBadgeImageSource);
