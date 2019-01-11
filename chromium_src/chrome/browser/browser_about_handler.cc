@@ -13,6 +13,10 @@
 bool FixupBrowserAboutURLBraveImpl(GURL* url,
                                    content::BrowserContext* browser_context) {
   if (url->SchemeIs(kBraveUIScheme)) {
+    NOTREACHED() << "brave url should not be reached here. scheme mapping "
+                    "should be done before. URL: "
+                 << url->spec();
+
     GURL::Replacements replacements;
     replacements.SetSchemeStr(content::kChromeUIScheme);
     *url = url->ReplaceComponents(replacements);
@@ -20,9 +24,7 @@ bool FixupBrowserAboutURLBraveImpl(GURL* url,
   return true;
 }
 
-
-bool FixupBrowserAboutURL(GURL* url,
-                          content::BrowserContext* browser_context) {
+bool FixupBrowserAboutURL(GURL* url, content::BrowserContext* browser_context) {
   FixupBrowserAboutURLBraveImpl(url, browser_context);
   return FixupBrowserAboutURL_ChromiumImpl(url, browser_context);
 }
