@@ -1,0 +1,18 @@
+diff --git a/content/browser/browser_url_handler_impl.cc b/content/browser/browser_url_handler_impl.cc
+index d75e689afee142d378a5b3e5bd2d86b561b39aa9..49e1175e0d7085b89bb14dcf4c50c48940131c65 100644
+--- a/content/browser/browser_url_handler_impl.cc
++++ b/content/browser/browser_url_handler_impl.cc
+@@ -23,6 +23,13 @@ static bool HandleViewSource(GURL* url, BrowserContext* browser_context) {
+     // Load the inner URL instead.
+     *url = GURL(url->GetContent());
+ 
++#if defined(BRAVE_CHROMIUM_BUILD)
++    DCHECK(!url->SchemeIs(kBraveUIScheme))
++        << "brave url should not be reached here. scheme mapping should be "
++            "done before. URL: "
++        << url->spec();
++#endif
++
+     // Bug 26129: limit view-source to view the content and not any
+     // other kind of 'active' url scheme like 'javascript' or 'data'.
+     static const char* const default_allowed_sub_schemes[] = {

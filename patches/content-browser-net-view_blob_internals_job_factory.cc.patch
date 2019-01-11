@@ -1,0 +1,18 @@
+diff --git a/content/browser/net/view_blob_internals_job_factory.cc b/content/browser/net/view_blob_internals_job_factory.cc
+index 409148f4054126a98f30914c16758a4dd7c07e97..b6123ea3fcd50fceb814dad27370645539debd51 100644
+--- a/content/browser/net/view_blob_internals_job_factory.cc
++++ b/content/browser/net/view_blob_internals_job_factory.cc
+@@ -14,6 +14,13 @@ namespace content {
+ 
+ // static.
+ bool ViewBlobInternalsJobFactory::IsSupportedURL(const GURL& url) {
++#if defined(BRAVE_CHROMIUM_BUILD)
++    DCHECK(!url.SchemeIs(kBraveUIScheme))
++        << "brave url should not be reached here. scheme mapping should be "
++            "done before. URL: "
++        << url.spec();
++#endif
++
+   return url.SchemeIs(kChromeUIScheme) &&
+          url.host_piece() == kChromeUIBlobInternalsHost;
+ }

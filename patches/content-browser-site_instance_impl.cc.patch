@@ -1,0 +1,18 @@
+diff --git a/content/browser/site_instance_impl.cc b/content/browser/site_instance_impl.cc
+index e283790d3c5ec2b9406d12cc872bb93f78205290..75114c2fd18442f4e49fb8ddf59f85d3e234b329 100644
+--- a/content/browser/site_instance_impl.cc
++++ b/content/browser/site_instance_impl.cc
+@@ -563,6 +563,13 @@ bool SiteInstanceImpl::DoesSiteRequireDedicatedProcess(
+     const GURL& url) {
+   DCHECK(browser_context);
+ 
++#if defined(BRAVE_CHROMIUM_BUILD)
++    DCHECK(!url.SchemeIs(kBraveUIScheme))
++        << "brave url should not be reached here. scheme mapping should be "
++            "done before. URL: "
++        << url.spec();
++#endif
++
+   // If --site-per-process is enabled, site isolation is enabled everywhere.
+   if (SiteIsolationPolicy::UseDedicatedProcessesForAllSites())
+     return true;

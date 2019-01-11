@@ -1,0 +1,18 @@
+diff --git a/content/renderer/web_ui_extension.cc b/content/renderer/web_ui_extension.cc
+index 6c05d14378b03c0f958cb10a41c57b0c3498db6b..5af788f69bdc08e679c656fbeb4f5be815ce3f25 100644
+--- a/content/renderer/web_ui_extension.cc
++++ b/content/renderer/web_ui_extension.cc
+@@ -42,6 +42,13 @@ bool ShouldRespondToRequest(blink::WebLocalFrame** frame_ptr,
+   if (!render_frame)
+     return false;
+ 
++#if defined(BRAVE_CHROMIUM_BUILD)
++  DCHECK(!frame_url.SchemeIs(kBraveUIScheme))
++      << "brave url should not be reached here. scheme mapping should be "
++          "done before. URL: "
++      << frame_url.spec();
++#endif
++
+   bool webui_enabled =
+       (render_frame->GetEnabledBindings() & BINDINGS_POLICY_WEB_UI) &&
+       (frame_url.SchemeIs(kChromeUIScheme) ||

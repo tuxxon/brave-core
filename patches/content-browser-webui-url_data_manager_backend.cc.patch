@@ -1,0 +1,32 @@
+diff --git a/content/browser/webui/url_data_manager_backend.cc b/content/browser/webui/url_data_manager_backend.cc
+index 9df29806e05a6e84f145cda44415fad07799a53b..7f6b1ae6bc02b79ec5a3c316bf47f9bc194ba9e7 100644
+--- a/content/browser/webui/url_data_manager_backend.cc
++++ b/content/browser/webui/url_data_manager_backend.cc
+@@ -376,6 +376,13 @@ class ChromeProtocolHandler
+           request, network_delegate, blob_storage_context_->context());
+     }
+ 
++#if defined(BRAVE_CHROMIUM_BUILD)
++    DCHECK(!request->url().SchemeIs(kBraveUIScheme))
++        << "brave url should not be reached here. scheme mapping should be "
++            "done before. URL: "
++        << request->url().spec();
++#endif
++
+     // Check for chrome://network-error/, which uses its own job type.
+     if (request->url().SchemeIs(kChromeUIScheme) &&
+         request->url().host_piece() == kChromeUINetworkErrorHost) {
+@@ -640,6 +647,13 @@ scoped_refptr<net::HttpResponseHeaders> URLDataManagerBackend::GetHeaders(
+ }
+ 
+ bool URLDataManagerBackend::CheckURLIsValid(const GURL& url) {
++#if defined(BRAVE_CHROMIUM_BUILD)
++  DCHECK(!url.SchemeIs(kBraveUIScheme))
++      << "brave url should not be reached here. scheme mapping should be "
++          "done before. URL: "
++      << url.spec();
++#endif
++
+   std::vector<std::string> additional_schemes;
+   DCHECK(url.SchemeIs(kChromeUIScheme) ||
+          (GetContentClient()->browser()->GetAdditionalWebUISchemes(

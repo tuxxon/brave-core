@@ -1,0 +1,18 @@
+diff --git a/content/browser/renderer_host/code_cache_host_impl.cc b/content/browser/renderer_host/code_cache_host_impl.cc
+index 7beb4593bf07b9bdc2303e5635c53b0e8f30cbd3..28201d007a3c50abbefc7a43e4428d0bd0badf5d 100644
+--- a/content/browser/renderer_host/code_cache_host_impl.cc
++++ b/content/browser/renderer_host/code_cache_host_impl.cc
+@@ -75,6 +75,13 @@ base::Optional<GURL> GetSecondaryKeyForCodeCache(const GURL& resource_url,
+   if (url::Origin::Create(origin_lock).opaque())
+     return base::nullopt;
+ 
++#if defined(BRAVE_CHROMIUM_BUILD)
++  DCHECK(!origin_lock.SchemeIs(kBraveUIScheme))
++      << "brave url should not be reached here. scheme mapping should be "
++          "done before. URL: "
++      << origin_lock.spec();
++#endif
++
+   // Case 3: origin_lock is used to enfore site-isolation in code caches.
+   // Http/https/chrome schemes are safe to be used as a secondary key. Other
+   // schemes could be enabled if they are known to be safe and if it is

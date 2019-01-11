@@ -1,0 +1,17 @@
+diff --git a/content/public/browser/url_data_source.cc b/content/public/browser/url_data_source.cc
+index 4056311ccceaba59d092102ddd0414ee45733ba1..f0832462a56cfd9dbbf6912f86dc22c131afbca7 100644
+--- a/content/public/browser/url_data_source.cc
++++ b/content/public/browser/url_data_source.cc
+@@ -68,6 +68,12 @@ bool URLDataSource::ShouldDenyXFrameOptions() const {
+ bool URLDataSource::ShouldServiceRequest(const GURL& url,
+                                          ResourceContext* resource_context,
+                                          int render_process_id) const {
++#if defined(BRAVE_CHROMIUM_BUILD)
++  DCHECK(!url.SchemeIs(kBraveUIScheme))
++      << "brave url should not be reached here. scheme mapping should be "
++          "done before. URL: "
++      << url.spec();
++#endif
+   return url.SchemeIs(kChromeDevToolsScheme) || url.SchemeIs(kChromeUIScheme);
+ }
+ 

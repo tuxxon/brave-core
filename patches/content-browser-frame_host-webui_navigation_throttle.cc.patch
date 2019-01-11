@@ -1,0 +1,32 @@
+diff --git a/content/browser/frame_host/webui_navigation_throttle.cc b/content/browser/frame_host/webui_navigation_throttle.cc
+index 625b1cb19fee06db8bb7b18a5fa0cdce4e9d9be5..ad52899c8fecdda0c035f7f9df9304ace0d89e46 100644
+--- a/content/browser/frame_host/webui_navigation_throttle.cc
++++ b/content/browser/frame_host/webui_navigation_throttle.cc
+@@ -20,6 +20,13 @@ WebUINavigationThrottle::~WebUINavigationThrottle() {}
+ 
+ NavigationThrottle::ThrottleCheckResult
+ WebUINavigationThrottle::WillStartRequest() {
++#if defined(BRAVE_CHROMIUM_BUILD)
++  DCHECK(!navigation_handle()->GetURL().SchemeIs(kBraveUIScheme))
++      << "brave url should not be reached here. scheme mapping should be "
++          "done before. URL: "
++      << navigation_handle()->GetURL().spec();
++#endif
++
+   // Allow only chrome: scheme documents to be navigated to.
+   if (navigation_handle()->GetURL().SchemeIs(kChromeUIScheme))
+     return PROCEED;
+@@ -45,6 +52,13 @@ WebUINavigationThrottle::CreateThrottleForNavigation(
+           ->parent()
+           ->current_frame_host();
+ 
++#if defined(BRAVE_CHROMIUM_BUILD)
++  DCHECK(!parent->GetLastCommittedURL().SchemeIs(kBraveUIScheme))
++      << "brave url should not be reached here. scheme mapping should be "
++          "done before. URL: "
++      << parent->GetLastCommittedURL().spec();
++#endif
++
+   // Create a throttle only for navigations where the parent frame is either
+   // at a chrome:// URL or is in a process with WebUI bindings.
+   if (ChildProcessSecurityPolicyImpl::GetInstance()->HasWebUIBindings(

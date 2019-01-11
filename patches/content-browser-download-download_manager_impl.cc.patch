@@ -1,0 +1,18 @@
+diff --git a/content/browser/download/download_manager_impl.cc b/content/browser/download/download_manager_impl.cc
+index c771efab4ae155a5f125937ddbaf0d7f8b5cd9c5..259c7eff90c8d2ca922144da05359219030685a9 100644
+--- a/content/browser/download/download_manager_impl.cc
++++ b/content/browser/download/download_manager_impl.cc
+@@ -1229,6 +1229,13 @@ void DownloadManagerImpl::BeginResourceDownloadOnChecksComplete(
+     }
+   }
+ 
++#if defined(BRAVE_CHROMIUM_BUILD)
++  DCHECK(!params->url().SchemeIs(kBraveUIScheme))
++      << "brave url should not be reached here. scheme mapping should be "
++          "done before. URL: "
++      << params->url().spec();
++#endif
++
+   DCHECK_EQ(params->url().SchemeIsBlob(), bool{blob_url_loader_factory});
+   scoped_refptr<download::DownloadURLLoaderFactoryGetter>
+       url_loader_factory_getter;

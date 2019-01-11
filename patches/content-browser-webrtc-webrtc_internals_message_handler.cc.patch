@@ -1,0 +1,19 @@
+diff --git a/content/browser/webrtc/webrtc_internals_message_handler.cc b/content/browser/webrtc/webrtc_internals_message_handler.cc
+index 9f6d4fde2f7d717f575a72025a8b0e94e3b9bd86..33bd9b2a125e027e9b27cf499af39d311da236b5 100644
+--- a/content/browser/webrtc/webrtc_internals_message_handler.cc
++++ b/content/browser/webrtc/webrtc_internals_message_handler.cc
+@@ -70,6 +70,14 @@ RenderFrameHost* WebRTCInternalsMessageHandler::GetWebRTCInternalsHost() const {
+   if (host) {
+     // Make sure we only ever execute the script in the webrtc-internals page.
+     const GURL url(host->GetLastCommittedURL());
++
++#if defined(BRAVE_CHROMIUM_BUILD)
++  DCHECK(!url.SchemeIs(kBraveUIScheme))
++      << "brave url should not be reached here. scheme mapping should be "
++          "done before. URL: "
++      << url.spec();
++#endif
++
+     if (!url.SchemeIs(kChromeUIScheme) ||
+         url.host() != kChromeUIWebRTCInternalsHost) {
+       // Some other page is currently loaded even though we might be in the

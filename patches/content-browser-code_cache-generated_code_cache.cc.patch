@@ -1,0 +1,18 @@
+diff --git a/content/browser/code_cache/generated_code_cache.cc b/content/browser/code_cache/generated_code_cache.cc
+index 5ff073f308c72f023a3bfb7b8d4091faee9056b4..31a87fda010a7e09f225cef9846d89ef809234b0 100644
+--- a/content/browser/code_cache/generated_code_cache.cc
++++ b/content/browser/code_cache/generated_code_cache.cc
+@@ -25,6 +25,13 @@ void CheckValidKeys(const GURL& resource_url, const GURL& origin_lock) {
+   // If the resource url is invalid don't cache the code.
+   DCHECK(resource_url.is_valid() && resource_url.SchemeIsHTTPOrHTTPS());
+ 
++#if defined(BRAVE_CHROMIUM_BUILD)
++  DCHECK(!origin_lock.SchemeIs(kBraveUIScheme))
++      << "brave url should not be reached here. scheme mapping should be "
++          "done before. URL: "
++      << origin_lock.spec();
++#endif
++
+   // |origin_lock| should be either empty or should have Http/Https/chrome
+   // schemes and it should not be a URL with opaque origin. Empty origin_locks
+   // are allowed when the renderer is not locked to an origin.

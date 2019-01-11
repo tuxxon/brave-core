@@ -1,0 +1,33 @@
+diff --git a/content/public/common/url_utils.cc b/content/public/common/url_utils.cc
+index 5fcc9b77371c5f51a7911cfaaa5ba77287832223..040907551cf508ca642edf0d057d231745cd6d6d 100644
+--- a/content/public/common/url_utils.cc
++++ b/content/public/common/url_utils.cc
+@@ -20,6 +20,12 @@
+ namespace content {
+ 
+ bool HasWebUIScheme(const GURL& url) {
++#if defined(BRAVE_CHROMIUM_BUILD)
++  DCHECK(!url.SchemeIs(kBraveUIScheme))
++      << "brave url should not be reached here. scheme mapping should be "
++          "done before";
++#endif
++
+   return url.SchemeIs(kChromeDevToolsScheme) ||
+          url.SchemeIs(kChromeUIScheme);
+ }
+@@ -71,6 +77,15 @@ bool IsRendererDebugURL(const GURL& url) {
+   if (!url.is_valid())
+     return false;
+ 
++#if defined(BRAVE_CHROMIUM_BUILD)
++  if (url.is_valid()) {
++    DCHECK(!url.SchemeIs(kBraveUIScheme))
++        << "brave url should not be reached here. scheme mapping should be "
++           "done before. URL: "
++        << url.spec();
++  }
++#endif
++
+   if (url.SchemeIs(url::kJavaScriptScheme))
+     return true;
+ 

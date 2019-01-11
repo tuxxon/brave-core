@@ -1,0 +1,20 @@
+diff --git a/content/browser/frame_host/debug_urls.cc b/content/browser/frame_host/debug_urls.cc
+index d396b2fc0309ef56c932299bd25d9bf6b4d49410..35b3f47cb8313cd9032105f7874f7846855da54c 100644
+--- a/content/browser/frame_host/debug_urls.cc
++++ b/content/browser/frame_host/debug_urls.cc
+@@ -69,6 +69,15 @@ void HandlePpapiFlashDebugURL(const GURL& url) {
+ }
+ 
+ bool IsAsanDebugURL(const GURL& url) {
++#if defined(BRAVE_CHROMIUM_BUILD)
++  if (url.is_valid()) {
++    DCHECK(!url.SchemeIs(kBraveUIScheme))
++        << "brave url should not be reached here. scheme mapping should be "
++            "done before. URL: "
++        << url.spec();
++  }
++#endif
++
+   if (!(url.is_valid() && url.SchemeIs(kChromeUIScheme) &&
+         url.DomainIs(kAsanCrashDomain) &&
+         url.has_path())) {
