@@ -8,14 +8,12 @@ import sys
 import unittest
 import os
 import upload
-from mock import Repo
-import upload
-
-from githubmock import Repo
+from githubmock import Repo, Release, Asset
+#https://cpython-test-docs.readthedocs.io/en/latest/library/unittest.mock.html
+from mock import MagicMock
 
 dirname = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dirname, '..'))
-
 
 class TestGetDraft(unittest.TestCase):
     def setUp(self):
@@ -151,8 +149,8 @@ class TestGetBravePackages(unittest.TestCase):
         pkgs = list(upload.get_brave_packages(
             os.path.join(self.get_pkgs_dir, upload.PLATFORM),
             'release', '0.56.8'))
-        self.assertEquals(pkgs, ['BraveBrowserSetup.exe',
-                                 'BraveBrowserStandaloneSetup.exe'])
+        self.assertEquals(sorted(pkgs), sorted(['BraveBrowserSetup.exe',
+                                 'BraveBrowserStandaloneSetup.exe']))
 
     def test_only_returns_release_win_ia32_package(self):
         upload.PLATFORM = 'win32'
@@ -160,9 +158,52 @@ class TestGetBravePackages(unittest.TestCase):
         pkgs = list(upload.get_brave_packages(
             os.path.join(self.get_pkgs_dir, upload.PLATFORM),
             'release', '0.56.8'))
-        self.assertEquals(pkgs, ['BraveBrowserStandaloneSetup32.exe',
-                                 'BraveBrowserSetup32.exe'])
+        self.assertEquals(sorted(pkgs), sorted(['BraveBrowserStandaloneSetup32.exe',
+                                 'BraveBrowserSetup32.exe']))
 
+def fake_upload_sha256_checksum(version, file_path):
+    print('BSC]] upload_sha256_checksum')
+
+# test uploading a single file
+class TestUploadBrave(unittest.TestCase):
+    def setUp(self):
+        self.repo = Repo()
+        self.file_path = os.path.join(os.path.dirname(
+            os.path.realpath(__file__)),
+            'test_get_pkgs',
+            'win32',
+            'BraveBrowserSetup.exe')
+        self.release = Release()
+        self.release.id = 1
+        self.release.tag_name = 'release-tag-here'
+        self.release.assets._assets.append(Asset(1, 'BraveBrowserSetup.exe'))
+        self.repo.releases._releases = [self.release]
+
+        self._old_upload_sha256_checksum = upload.upload_sha256_checksum
+        upload.upload_sha256_checksum = MagicMock()
+
+        self._old_upload_io_to_github = upload.upload_io_to_github
+        upload.upload_io_to_github = MagicMock()
+
+    def tearDown(self):
+        upload.upload_sha256_checksum = self._old_upload_sha256_checksum
+        upload.upload_io_to_github = self._old_upload_io_to_github
+
+    def test_calls_delete_if_exists(self):
+        print('lol')
+
+    def test_calls_upload(self):
+        upload.upload_brave(self.repo, self.release, self.file_path)
+
+        args, kwargs = upload.upload_io_to_github.call_args
+        self.assertTrue(args[0] == self.repo)
+        self.assertTrue(args[2] == self.release.assets._assets[0].name)
+        self.assertTrue(args[4] == 'application/zip')
+
+    def test_calls_uploads_checksum(self):
+        upload.upload_brave(self.repo, self.release, self.file_path)
+        upload.upload_sha256_checksum.assert_called_with(self.release.tag_name, self.file_path)
 
 if __name__ == '__main__':
     print unittest.main()
+
