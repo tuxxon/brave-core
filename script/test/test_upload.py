@@ -9,12 +9,12 @@ import unittest
 import os
 import upload
 from githubmock import Repo, Release, Asset
-#https://cpython-test-docs.readthedocs.io/en/latest/library/unittest.mock.html
 from mock import MagicMock
 
 dirname = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(dirname, '..'))
 
+# get an existing release (in draft status) from GitHub given a tag name
 class TestGetDraft(unittest.TestCase):
     def setUp(self):
         self.repo = Repo()
@@ -161,10 +161,7 @@ class TestGetBravePackages(unittest.TestCase):
         self.assertEquals(sorted(pkgs), sorted(['BraveBrowserStandaloneSetup32.exe',
                                  'BraveBrowserSetup32.exe']))
 
-def fake_upload_sha256_checksum(version, file_path):
-    print('BSC]] upload_sha256_checksum')
-
-# test uploading a single file
+# uploading a single file to GitHub
 class TestUploadBrave(unittest.TestCase):
     def setUp(self):
         self.repo = Repo()
@@ -176,8 +173,10 @@ class TestUploadBrave(unittest.TestCase):
         self.release = Release()
         self.release.id = 1
         self.release.tag_name = 'release-tag-here'
-        self.release.assets._assets.append(Asset(1, 'BraveBrowserSetup.exe'))
+        self.asset = Asset(1, 'BraveBrowserSetup.exe')
+        self.release.assets._assets.append(self.asset)
         self.repo.releases._releases = [self.release]
+        self.repo.releases.assets = self.release.assets
 
         self._old_upload_sha256_checksum = upload.upload_sha256_checksum
         upload.upload_sha256_checksum = MagicMock()
@@ -189,16 +188,21 @@ class TestUploadBrave(unittest.TestCase):
         upload.upload_sha256_checksum = self._old_upload_sha256_checksum
         upload.upload_io_to_github = self._old_upload_io_to_github
 
-    def test_calls_delete_if_exists(self):
-        print('lol')
+    def test_calls_delete_if_already_exists(self):
+        upload.upload_brave(self.repo, self.release, self.file_path)
+        self.asset.delete.assert_called()
 
     def test_calls_upload(self):
         upload.upload_brave(self.repo, self.release, self.file_path)
+        upload.upload_io_to_github.assert_called()
 
         args, kwargs = upload.upload_io_to_github.call_args
         self.assertTrue(args[0] == self.repo)
         self.assertTrue(args[2] == self.release.assets._assets[0].name)
         self.assertTrue(args[4] == 'application/zip')
+
+    def test_retries_upload(self):
+        print('lol')
 
     def test_calls_uploads_checksum(self):
         upload.upload_brave(self.repo, self.release, self.file_path)
